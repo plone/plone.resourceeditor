@@ -1,0 +1,42 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="plone">
+
+    <include package="plone.resource" />
+
+    <permission
+        id="plone.resourceeditor.ManageSources"
+        title="plone.resourceeditor: Manage Sources"
+        />
+
+    <browser:resourceDirectory
+        name="plone.resourceeditor"
+        directory="resources"
+        />
+    
+    <browser:page
+        name="plone.resourceeditor.filemanager"
+        for="plone.resource.interfaces.IResourceDirectory"
+        class=".browser.FileManager"
+        template="editor.pt"
+        permission="plone.resourceeditor.ManageSources"
+        />
+    
+    <browser:page
+        name="plone.resourceeditor.getfile"
+        for="plone.resource.interfaces.IResourceDirectory"
+        class=".browser.FileManager"
+        attribute="getFile"
+        permission="plone.resourceeditor.ManageSources"
+        />
+    
+    <browser:page
+        name="plone.resourceeditor.savefile"
+        for="plone.resource.interfaces.IResourceDirectory"
+        class=".browser.FileManager"
+        attribute="saveFile"
+        permission="plone.resourceeditor.ManageSources"
+        />
+
+</configure>
