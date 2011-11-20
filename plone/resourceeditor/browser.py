@@ -19,10 +19,13 @@ from Products.CMFCore.utils import getToolByName
 
 _ = MessageFactory(u"plone")
 
+
 def authorize(context, request):
-    authenticator = queryMultiAdapter((context, request), name=u"authenticator")
+    authenticator = queryMultiAdapter((context, request),
+                                      name=u"authenticator")
     if authenticator is not None and not authenticator.verify():
         raise Unauthorized
+
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
@@ -63,45 +66,40 @@ class FileManager(BrowserView):
 
             if mode == u'getfolder':
                 response = self.getFolder(
-                                path=urllib.unquote(form['path']),
-                                getSizes=form.get(
-                                    'getsizes', 'false') == 'true'
-                            )
+                    path=urllib.unquote(form['path']),
+                    getSizes=form.get('getsizes', 'false') == 'true')
             elif mode == u'getinfo':
                 response = self.getInfo(
-                                path=urllib.unquote(form['path']),
-                                getSize=form.get('getsize', 'false') == 'true',
-                            )
+                    path=urllib.unquote(form['path']),
+                    getSize=form.get('getsize', 'false') == 'true')
             elif mode == u'addfolder':
                 response = self.addFolder(
-                                path=urllib.unquote(form['path']),
-                                name=urllib.unquote(form['name']),
-                            )
+                    path=urllib.unquote(form['path']),
+                    name=urllib.unquote(form['name']))
             elif mode == u'add':
                 textareaWrap = True
                 response = self.add(
-                                path=urllib.unquote(form['currentpath']),
-                                newfile=form['newfile'],
-                                replacepath=form.get('replacepath', None)
-                            )
+                    path=urllib.unquote(form['currentpath']),
+                    newfile=form['newfile'],
+                    replacepath=form.get('replacepath', None))
             elif mode == u'addnew':
                 response = self.addNew(
-                                path=urllib.unquote(form['path']),
-                                name=urllib.unquote(form['name']),
-                            )
+                    path=urllib.unquote(form['path']),
+                    name=urllib.unquote(form['name']))
             elif mode == u'rename':
                 response = self.rename(
-                                path=urllib.unquote(form['old']),
-                                newName=urllib.unquote(form['new']),
-                            )
+                    path=urllib.unquote(form['old']),
+                    newName=urllib.unquote(form['new']))
             elif mode == u'delete':
                 response = self.delete(
-                                path=urllib.unquote(form['path']),
-                            )
+                    path=urllib.unquote(form['path']))
             elif mode == u'download':
                 return self.download(
-                                path=urllib.unquote(form['path']),
-                            )
+                    path=urllib.unquote(form['path']))
+            elif mode == 'move':
+                return self.move(
+                    path=urllib.unquote(form['path']),
+                    directory=urllib.unquote(form['directory']))
             if textareaWrap:
                 self.request.response.setHeader('Content-Type', 'text/html')
                 return "<textarea>%s</textarea>" % json.dumps(response)
@@ -118,13 +116,14 @@ class FileManager(BrowserView):
                 self.context = getSite()
                 return self.index()
             return ''
-    
+
     def setup(self):
         processInputs(self.request)
 
         self.resourceDirectory = self.context
         self.name = self.resourceDirectory.__name__
-        self.resourceType = self.resourceDirectory.__parent__.__parent__.__name__
+        self.resourceType = \
+            self.resourceDirectory.__parent__.__parent__.__name__
         self.title = self.name.capitalize().replace('-', ' ').replace('.', ' ')
 
         self.portalUrl = getToolByName(self.context, 'portal_url')()
@@ -136,8 +135,12 @@ class FileManager(BrowserView):
             path = path[:-1]
         return path
 
+    def parentPath(self, path):
+        return '/'.join(path.split('/')[:-1])
+
     def update(self):
-        baseUrl = "%s/++%s++%s" % (self.portalUrl, self.resourceType, self.resourceDirectory.__name__,)
+        baseUrl = "%s/++%s++%s" % (self.portalUrl, self.resourceType,
+                                   self.resourceDirectory.__name__)
         fileConnector = "%s/@@%s" % (baseUrl, self.__name__,)
 
         self.filemanagerConfiguration = """\
@@ -421,9 +424,8 @@ var BASE_URL = '%s';
             if _ext in self.extensionsWithIcons:
                 return _ext
         return ext
-    
-    # Methods that are their own views
 
+    # Methods that are their own views
     def getFile(self, path):
         self.setup()
         path = self.normalizePath(path)
@@ -435,7 +437,7 @@ var BASE_URL = '%s';
         else:
             info = self.getInfo(path)
             result['info'] = self.previewTemplate(info=info)
-        
+
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps(result)
 
@@ -443,4 +445,51 @@ var BASE_URL = '%s';
         processInputs(self.request)
         value = value.replace('\r\n', '\n')
         self.context.writeFile(path, value.encode('utf-8'))
-        return ' ' # Zope no likey empty responses
+        return ' '  # Zope no likey empty responses
+
+    def move(self, path, directory):
+        npath = self.normalizePath(path)
+        parentPath = self.parentPath(npath)
+        filename = npath.split('/')[-1]
+        parent = self.getObject(parentPath)
+        directory = self.normalizePath(directory)
+        todirectory = self.getObject(directory)
+        file = self.getObject(npath)
+        parent.context._delOb(filename)
+        count = 1
+        ext = self.getExtension(path, file)
+        while filename in parent:
+            filename = '%s-%i.%s' % (
+                filename.replace('.' + ext, ''),
+                count,
+                ext
+            )
+            count += 1
+        todirectory.context._setOb(filename, file)
+
+        return json.dumps({'newpath': '/%s/%s' % (directory, filename)})
+
+    def filetree(self):
+        def getFolder(root, relpath=''):
+            result = []
+            for name in root.listDirectory():
+                path = '%s/%s' % (relpath, name)
+                if IResourceDirectory.providedBy(root[name]):
+                    item = {
+                        'title': name,
+                        'key': path,
+                        'isFolder': True
+                    }
+                    item['children'] = getFolder(root[name], path)
+                else:
+                    item = {'title': name, 'key': path}
+                result.append(item)
+            return result
+        return json.dumps([{
+            'title': '/',
+            'key': '/',
+            'isFolder': True,
+            "expand": True,
+            'children': getFolder(self.context)
+        }])
+

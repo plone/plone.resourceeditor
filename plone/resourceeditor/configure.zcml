@@ -39,4 +39,12 @@
         permission="plone.resourceeditor.ManageSources"
         />
 
+    <browser:page
+        name="plone.resourceeditor.filetree"
+        for="plone.resource.interfaces.IResourceDirectory"
+        class=".browser.FileManager"
+        attribute="filetree"
+        permission="plone.resourceeditor.ManageSources"
+        />
+
 </configure>

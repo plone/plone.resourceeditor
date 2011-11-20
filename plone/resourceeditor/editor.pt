@@ -12,8 +12,11 @@
 
     <link rel="stylesheet" type="text/css"
         tal:attributes="href string:${managerFiles}/scripts/jquery.contextmenu/jquery.contextMenu-1.01.css" />
+    <link href="../src/skin/ui.dynatree.css" rel="stylesheet" type="text/css"
+        tal:attributes="href string:${managerFiles}/skin/ui.dynatree.css">
     <link rel="stylesheet" type="text/css"
         tal:attributes="href string:${managerFiles}/styles/filemanager.css" />
+         
     <!--[if IE]>
     <link rel="stylesheet" type="text/css"
         tal:attributes="href string:${managerFiles}/styles/ie.css" />
@@ -25,6 +28,8 @@
     <script type="text/javascript" tal:attributes="src string:${managerFiles}/scripts/jquery.form-2.63.js"></script>
     <script type="text/javascript" tal:attributes="src string:${managerFiles}/scripts/jquery.splitter/jquery.splitter-1.5.1.js"></script>
     <script type="text/javascript" tal:attributes="src string:${managerFiles}/scripts/jquery.contextmenu/jquery.contextMenu-1.01.js"></script>
+    <script type="text/javascript" tal:attributes="src string:${staticFiles}/jqueryui/js/jquery-ui-1.8.16.min.js"></script>
+    <script type="text/javascript" charset="utf-8" tal:attributes="src string:${managerFiles}/scripts/jquery.dynatree.min.js"></script>
 
     <!-- ACE editor -->
     <script type="text/javascript" charset="utf-8" tal:attributes="src string:${aceFiles}/ace.js"></script>
@@ -89,14 +94,7 @@
             </div>
         </form>
         <div id="splitter">
-            <div id="fileRoot">
-                <ul class="jqueryFileTree">
-                    <li id="rootNode" class="directory">
-                        <a rel="/" href="#">/</a>
-                    </li>
-                </ul>
-                <div id="filetree">
-                </div>
+            <div id="filetree">
             </div>
             <div id="fileeditor">
                 <ul id="fileselector">

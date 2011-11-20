@@ -64,8 +64,9 @@
 	padding-left: 10px;
 }
 
-#filetree > ul {
-	padding: 4px;
+#content #filetree li{
+	margin-bottom:0;
+	line-height:13px;
 }
 
 #splitter .vsplitbar {
@@ -414,17 +415,6 @@ button.ON {
     background-color: #EEEEEE;
 }
 
-#fileRoot{
-	padding: 5px;
-}
-#fileRoot a:visited{
-	border:none;
-}
-
-#filetree a.selected{
-	background-color: #EEEEEE;
-}
-
 #aceeditors div.info{
 	padding: 10px;
 }
@@ -745,4 +735,8 @@ UL.jqueryFileTree A:hover, UL.jqueryFileTree A:selected {
 
 .jqueryFileTree LI.ext_zip {
 	background: url(../images/zip.png) left top no-repeat;
+}
+
+ul.dynatree-container{
+	height:100%;
 }
