@@ -444,7 +444,7 @@ var BASE_URL = '%s';
     def saveFile(self, path, value):
         processInputs(self.request)
         value = value.replace('\r\n', '\n')
-        self.context.writeFile(path, value.encode('utf-8'))
+        self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
         return ' '  # Zope no likey empty responses
 
     def move(self, path, directory):
