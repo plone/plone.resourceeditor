@@ -5,10 +5,10 @@ var SourceEditor = function(element, mode, data, readonly, onchange) {
 
     this.element = '#' + element;
     this.ace = null;
-    
+
     if(this.useAce) {
         this.ace = ace.edit(element);
-        
+
         this.ace.setTheme("ace/theme/textmate");
         this.ace.getSession().setTabSize(4);
         this.ace.getSession().setUseSoftTabs(true);
@@ -22,7 +22,7 @@ var SourceEditor = function(element, mode, data, readonly, onchange) {
         this.ace.navigateTo(0, 0);
 
         if(onchange) {
-            this.ace.on('change', onchange);   
+            this.ace.on('change', onchange);
         }
     } else {
         $(this.element).replaceWith("<textarea id='" + element + "' class='" + $(this.element).attr('class') + "' wrap='off'></textarea>");
@@ -34,7 +34,7 @@ var SourceEditor = function(element, mode, data, readonly, onchange) {
             $(this.element).keyup(onchange);
         }
     }
-    
+
 };
 
 SourceEditor.prototype.focus = function() {
