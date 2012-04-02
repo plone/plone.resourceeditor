@@ -15,7 +15,9 @@
 $(function(){
 
 var _fileTree = $('#filetree');
-var _editorHeight = $(window).height() - $('#buttons').height() - 30;
+// var _editorHeight = $(window).height() - $('#buttons').height() - 30;
+var _editorHeight = 450;
+
 var _prompt = $('#pb_prompt');
 _prompt.overlay({
 	mask: {
@@ -69,7 +71,7 @@ var getFolder = function(node){
     return node;
 }
 
-/* Show modal prompt 
+/* Show modal prompt
 
 options = {
 	title: required title shown on prompt,
@@ -105,7 +107,7 @@ var showPrompt = function(options){
 	for(var i=0; i<options.buttons.length; i++){
 		var button = options.buttons[i];
 		$('.formControls', _prompt).append(
-			'<input class="context" type="submit" name="form.button.' + 
+			'<input class="context" type="submit" name="form.button.' +
 			button + '" value="' + button + '">');
 	}
 	options.onBeforeLoad();
@@ -140,7 +142,7 @@ var getAuthenicator = function(){
 // Forces columns to fill the layout vertically.
 // Called on initial page load and on resize.
 var setDimensions = function(){
-	_editorHeight = $(window).height() - $('#buttons').height() - 30;
+	// _editorHeight = $(window).height() - $('#buttons').height() - 30 - _previewHeight;
 	$('#splitter, #fileeditor, .vsplitbar').height(_editorHeight);
 	_fileTree.height(_editorHeight-25);
 	$('#fileeditor ul#aceeditors li pre').height(_editorHeight-32);
@@ -172,14 +174,17 @@ var selectFile = function(node){
             $(this).addClass('selected');
             $("#aceeditors li[rel='" + $(this).attr('rel') + "']").addClass('selected');
             setSaveState();
+            $("#filemanager").trigger('resourceeditor.selected', node.data.key);
         });
         close.click(function(){
-            var tabel = $(this).parent()
+            var tabel = $(this).parent();
             var remove_tab = function(){
-                if(tabel.hasClass('selected')){
-                    var other = tabel.siblings().eq(0);
+                $("#filemanager").trigger('resourceeditor.closed', node.data.key);
+                if(tabel.hasClass('selected') && tabel.siblings("li").length > 0){
+                    var other = tabel.siblings("li").eq(0);
                     other.addClass('selected');
-                    $("#aceeditors li[rel='" + other.attr('rel') + "']").addClass('selected'); 
+                    $("#aceeditors li[rel='" + other.attr('rel') + "']").addClass('selected');
+                    $("#filemanager").trigger('resourceeditor.selected', other.attr('rel'));
                 }
                 $("#aceeditors li[rel='" + tabel.attr('rel') + "']").remove();
                 tabel.remove();
@@ -237,10 +242,11 @@ var selectFile = function(node){
                     editor.navigateTo(0, 0);
                     _editors[node.data.key] = editor;
                     var markDirty = function(){
-                        $("#fileselector li[rel='" + node.data.key + "']").addClass('dirty'); 
+                        $("#fileselector li[rel='" + node.data.key + "']").addClass('dirty');
                         setSaveState();
                     }
                     editor.getSession().on('change', markDirty);
+                    $("#filemanager").trigger('resourceeditor.loaded', node.data.key);
                 }else{
                     li.append(data.info);
                     $("#aceeditors").append(li);
@@ -249,10 +255,11 @@ var selectFile = function(node){
         })
     }
     $("#fileselector " + relselector + ",#aceeditors " + relselector).addClass('selected');
+    $("#filemanager").trigger('resourceeditor.selected', node.data.key);
 }
 
-// Sets the folder status, upload, and new folder functions 
-// to the path specified. Called on initial page load and 
+// Sets the folder status, upload, and new folder functions
+// to the path specified. Called on initial page load and
 // whenever a new directory is selected.
 var setUploader = function(path){
 	$('#buttons h1').text(lg.current_folder + path);
@@ -260,7 +267,7 @@ var setUploader = function(path){
     // New
     $('#addnew').unbind().click(function(){
         var filename = '';
-        
+
         var getFileName = function(button, fname){
             if(button != lg.create_file){ return; }
             $('input', _prompt).attr('disabled', 'disabled');
@@ -297,12 +304,12 @@ var setUploader = function(path){
 	        callback: getFileName,
 	        buttons: btns,
 	        inputValue: filename,
-	        showInput: true}); 
-    }); 
+	        showInput: true});
+    });
 
 	$('#newfolder').unbind().click(function(){
 		var foldername =  lg.default_foldername;
-		
+
 		var getFolderName = function(button, fname){
 			if(button != lg.create_folder){return;}
 			$('input', _prompt).attr('disabled', 'disabled');
@@ -316,7 +323,7 @@ var setUploader = function(path){
                         path: getCurrentFolder().data.key,
                         name: foldername,
                         _authenticator: getAuthenicator()
-                    }, 
+                    },
                     async: false,
                     type: 'POST',
                     success: function(result){
@@ -324,7 +331,7 @@ var setUploader = function(path){
                             getCurrentFolder().addChild({ title: result['Name'], key: result['Name'], isFolder: true });
 				        } else {
                             deffered = function(){ showPrompt({title:result['Error']});}
-				        }				
+				        }
 				    }
             	})
 			} else {
@@ -339,13 +346,13 @@ var setUploader = function(path){
 			callback: getFolderName,
 			buttons: btns,
 			inputValue: foldername,
-			showInput: true});	
-	});	
+			showInput: true});
+	});
 }
 
 // Renames the current item and returns the new name.
 // Called by clicking the "Rename" button in detail views
-// or choosing the "Rename" contextual menu option in 
+// or choosing the "Rename" contextual menu option in
 // list views.
 var renameItem = function(node){
 	var finalName = '';
@@ -356,7 +363,7 @@ var renameItem = function(node){
 
 		if(rname != ''){
 			var givenName = nameFormat(rname);
-		
+
 			$.ajax({
 				type: 'POST',
 				url: FILE_CONNECTOR,
@@ -382,7 +389,7 @@ var renameItem = function(node){
 						deffered = function(){ showPrompt({title: result['Error']}); }
 					}
 				}
-			});	
+			});
 		}
 		return deffered
 	}
@@ -394,7 +401,7 @@ var renameItem = function(node){
 		buttons: btns,
 		inputValue: node.data.title,
 		showInput: true});
-	
+
 	return finalName;
 }
 
@@ -404,7 +411,7 @@ var renameItem = function(node){
 var deleteItem = function(node){
 	var isDeleted = false;
 	var msg = lg.confirmation_delete;
-	
+
 	var doDelete = function(button, value){
 		if(button != lg.yes){ return; }
 		var deffered = function(){};
@@ -435,7 +442,7 @@ var deleteItem = function(node){
 	}
 	var btns = [lg.yes, lg.no];
 	showPrompt({title: msg, callback: doDelete, buttons: btns});
-	
+
 	return isDeleted;
 }
 
@@ -475,7 +482,7 @@ var setSaveState = function(){
 setDimensions();
 $(window).resize(setDimensions);
 
-// we finalize the FileManager UI initialization 
+// we finalize the FileManager UI initialization
 // with localized text if necessary
 $('#upload').append(lg.upload);
 $('#addnew').append(lg.add_new);
@@ -540,7 +547,7 @@ $("#upload").click(function(){
 				success: function(result){
 					_prompt.overlay().close();
 					var data = jQuery.parseJSON($('#uploadresponse').find('textarea').text());
-		
+
 					if(data['Code'] == 0){
                         var node = getCurrentFolder().addChild({ title: result['Name'], key: result['Name'] });
                         node.render();
@@ -630,8 +637,9 @@ $("#save").live('click', function(){
         data: {path: path, value: editor.getSession().getValue()},
         type: 'POST',
         success: function(){
-            $("#fileselector li[rel='" + path + "']").removeClass('dirty'); 
+            $("#fileselector li[rel='" + path + "']").removeClass('dirty');
             setSaveState();
+            $("#filemanager").trigger('resourceeditor.saved', path);
         }
     });
     return false;
