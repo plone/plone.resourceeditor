@@ -16,7 +16,7 @@
         tal:attributes="href string:${managerFiles}/skin/ui.dynatree.css">
     <link rel="stylesheet" type="text/css"
         tal:attributes="href string:${managerFiles}/styles/filemanager.css" />
-         
+
     <!--[if IE]>
     <link rel="stylesheet" type="text/css"
         tal:attributes="href string:${managerFiles}/styles/ie.css" />
@@ -44,12 +44,12 @@
 
     <!-- Editor abstraction -->
     <script type="text/javascript" charset="utf-8" tal:attributes="src string:${staticFiles}/editor.js"></script>
-    
+
     <script type="text/javascript">
     var lg = {}; // Languages for the file manager
 
     (function($) {
-        
+
         $().ready(function() {
             $("#messages span").each(function() {
                 lg[$(this).attr('id')] = $(this).text();
@@ -85,7 +85,7 @@
             <input tal:replace="structure authenticator" />
             <h1></h1>
             <div id="uploadresponse"></div>
-            <input id="mode" name="mode" type="hidden" value="add" i18n:attributes="value"/> 
+            <input id="mode" name="mode" type="hidden" value="add" i18n:attributes="value"/>
             <button id="save" name="save" type="button" value="Save" disabled="disabled" i18n:attributes="value"></button>
             <button id="addnew" name="addnew" type="button" value="New File" i18n:attributes="value"></button>
             <button id="newfolder" name="newfolder" type="button" value="New Folder" i18n:attributes="value"></button>
@@ -101,7 +101,7 @@
 
                 </ul>
                 <ul id="aceeditors">
-                
+
                 </ul>
             </div>
         </div>
@@ -115,7 +115,7 @@
         <div style="display:none" id="messages">
             <tal:comment replace="nothing">
                 Use page template translation machinery to translate message strings.
-                These are put into the JavaScript array 'lg', which is used in 
+                These are put into the JavaScript array 'lg', which is used in
                 filemanager.js to lookup languages. This takes the place of the
                 'culture' JS file approach in the default filemanager.
             </tal:comment>
@@ -184,12 +184,10 @@
 
             <span id='prompt_replacefile' i18n:translate="filemanager_prompt_replacefile">Replace currently selected file?</span>
             <span id='prompt_unsavedchanges' i18n:translate="filemanager_prompt_unsavedchanges">You have unsaved changes</span>
-            <span id='prompt_unsavedchanges_desc' i18n:translate="filemanager_prompt_unsavedchanges_desc">
-                Would you like to save first?
-            </span>
+            <span id='prompt_unsavedchanges_desc' i18n:translate="filemanager_prompt_unsavedchanges_desc">Would you like to save first?</span>
             <span id='prompt_fileupload' i18n:translate='filemanager_prompt_fileupload'>Select a file to upload</span>
         </div>
-    
+
     </div>
 
 </tal:defines>
