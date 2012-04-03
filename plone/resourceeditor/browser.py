@@ -7,6 +7,7 @@ from zope.site.hooks import getSite
 from zope.publisher.browser import BrowserView
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
+from zope.cachedescriptors import property
 
 from plone.resource.interfaces import IResourceDirectory
 
@@ -110,23 +111,44 @@ class FileManager(BrowserView):
 
         # Rendering the view
         else:
-            if self.update():
-                # Evil hack to deal with the lack of implicit acquisition from
-                # resource directories
-                self.context = getSite()
-                return self.index()
-            return ''
+            return self.index()
 
     def setup(self):
         processInputs(self.request)
 
-        self.resourceDirectory = self.context
-        self.name = self.resourceDirectory.__name__
-        self.resourceType = \
-            self.resourceDirectory.__parent__.__parent__.__name__
-        self.title = self.name.capitalize().replace('-', ' ').replace('.', ' ')
+    @property.Lazy
+    def portalUrl(self):
+        return getToolByName(self.context, 'portal_url')()
 
-        self.portalUrl = getToolByName(self.context, 'portal_url')()
+    @property.Lazy
+    def resourceDirectory(self):
+        return self.context
+
+    @property.Lazy
+    def resourceType(self):
+        return self.resourceDirectory.__parent__.__parent__.__name__
+
+    @property.Lazy
+    def baseUrl(self):
+        return "%s/++%s++%s" % (self.portalUrl, self.resourceType,
+                                   self.resourceDirectory.__name__)
+
+    @property.Lazy
+    def fileConnector(self):
+        return "%s/@@%s" % (self.baseUrl, self.__name__,)
+
+    @property.Lazy
+    def filemanagerConfiguration(self):
+        return """\
+var FILE_ROOT = '/';
+var IMAGES_EXT = %s;
+var CAPABILITIES = %s;
+var FILE_CONNECTOR = '%s';
+var BASE_URL = '%s';
+""" % (repr(self.imageExtensions),
+       repr(self.capabilities),
+       self.fileConnector,
+       self.baseUrl,)
 
     def normalizePath(self, path):
         if path.startswith('/'):
@@ -137,24 +159,6 @@ class FileManager(BrowserView):
 
     def parentPath(self, path):
         return '/'.join(path.split('/')[:-1])
-
-    def update(self):
-        baseUrl = "%s/++%s++%s" % (self.portalUrl, self.resourceType,
-                                   self.resourceDirectory.__name__)
-        fileConnector = "%s/@@%s" % (baseUrl, self.__name__,)
-
-        self.filemanagerConfiguration = """\
-var FILE_ROOT = '/';
-var IMAGES_EXT = %s;
-var CAPABILITIES = %s;
-var FILE_CONNECTOR = '%s';
-var BASE_URL = '%s';
-""" % (repr(self.imageExtensions),
-       repr(self.capabilities),
-       fileConnector,
-       baseUrl,)
-
-        return True
 
     # AJAX responses
 

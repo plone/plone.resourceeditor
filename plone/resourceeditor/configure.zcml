@@ -14,7 +14,7 @@
         name="plone.resourceeditor"
         directory="resources"
         />
-    
+
     <browser:page
         name="plone.resourceeditor.filemanager"
         for="plone.resource.interfaces.IResourceDirectory"
@@ -22,7 +22,7 @@
         template="editor.pt"
         permission="plone.resourceeditor.ManageSources"
         />
-    
+
     <browser:page
         name="plone.resourceeditor.getfile"
         for="plone.resource.interfaces.IResourceDirectory"
@@ -30,7 +30,7 @@
         attribute="getFile"
         permission="plone.resourceeditor.ManageSources"
         />
-    
+
     <browser:page
         name="plone.resourceeditor.savefile"
         for="plone.resource.interfaces.IResourceDirectory"
