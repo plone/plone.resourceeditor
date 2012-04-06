@@ -694,7 +694,7 @@ canon.addCommand({
 });
 
 canon.addCommand({
-    name: 'newFolder',
+    name: 'closeTab',
     bindKey: {
         mac: 'Command-W',
         win: 'Ctrl+W',
