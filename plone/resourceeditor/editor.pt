@@ -48,7 +48,7 @@
             <script type="text/javascript">
             var lg = {}; // Languages for the file manager
 
-            (function($) {
+            jQuery(function($) {
 
                 $().ready(function() {
                     $("#messages span").each(function() {
@@ -60,7 +60,7 @@
 
                 });
 
-            })(jQuery);
+            });
             </script>
             <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/filemanager.js"></script>
         </metal:block>
