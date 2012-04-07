@@ -3,7 +3,6 @@ import os.path
 import json
 
 from zope.component import queryMultiAdapter
-from zope.site.hooks import getSite
 from zope.publisher.browser import BrowserView
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
@@ -62,45 +61,54 @@ class FileManager(BrowserView):
             if mode in self.protectedActions:
                 authorize(self.context, self.request)
 
-            response = {'Error:': 'Unknown request', 'Code': -1}
+            response = {'error:': 'Unknown request', 'code': -1}
             textareaWrap = False
 
             if mode == u'getfolder':
                 response = self.getFolder(
                     path=urllib.unquote(form['path']),
-                    getSizes=form.get('getsizes', 'false') == 'true')
+                    getSizes=form.get('getsizes', 'false') == 'true'
+                )
             elif mode == u'getinfo':
                 response = self.getInfo(
                     path=urllib.unquote(form['path']),
-                    getSize=form.get('getsize', 'false') == 'true')
+                    getSize=form.get('getsize', 'false') == 'true'
+                )
             elif mode == u'addfolder':
                 response = self.addFolder(
                     path=urllib.unquote(form['path']),
-                    name=urllib.unquote(form['name']))
+                    name=urllib.unquote(form['name'])
+                )
             elif mode == u'add':
                 textareaWrap = True
                 response = self.add(
                     path=urllib.unquote(form['currentpath']),
                     newfile=form['newfile'],
-                    replacepath=form.get('replacepath', None))
+                    replacepath=form.get('replacepath', None)
+                )
             elif mode == u'addnew':
                 response = self.addNew(
                     path=urllib.unquote(form['path']),
-                    name=urllib.unquote(form['name']))
+                    name=urllib.unquote(form['name'])
+                )
             elif mode == u'rename':
                 response = self.rename(
                     path=urllib.unquote(form['old']),
-                    newName=urllib.unquote(form['new']))
+                    newName=urllib.unquote(form['new'])
+                )
             elif mode == u'delete':
                 response = self.delete(
-                    path=urllib.unquote(form['path']))
+                    path=urllib.unquote(form['path'])
+                )
+            elif mode == 'move':
+                response = self.move(
+                    path=urllib.unquote(form['path']),
+                    directory=urllib.unquote(form['directory'])
+                )
             elif mode == u'download':
                 return self.download(
-                    path=urllib.unquote(form['path']))
-            elif mode == 'move':
-                return self.move(
-                    path=urllib.unquote(form['path']),
-                    directory=urllib.unquote(form['directory']))
+                    path=urllib.unquote(form['path'])
+                )
             if textareaWrap:
                 self.request.response.setHeader('Content-Type', 'text/html')
                 return "<textarea>%s</textarea>" % json.dumps(response)
@@ -193,7 +201,7 @@ var BASE_URL = '%s';
         return folders + files
 
     def getInfo(self, path, getSize=False):
-        """ Returns information about a single file. Requests
+        """Returns information about a single file. Requests
         with mode "getinfo" will include an additional parameter, "path",
         indicating which file to inspect. A boolean parameter "getsize"
         indicates whether the dimensions of the file (if an image) should be
@@ -254,32 +262,41 @@ var BASE_URL = '%s';
             properties['width'] = obj.width
 
         return {
-            'Path': path,
-            'Filename': filename,
-            'File Type': fileType,
+            'path': path,
+            'filename': filename,
+            'fileType': fileType,
             'preview': preview,
             'properties': properties,
-            'Error': error,
-            'Code': errorCode,
+            'error': error,
+            'code': errorCode,
         }
 
     def addFolder(self, path, name):
-        """The addfolder method creates a new directory on the server within
-        the given path.
+        """Create a new directory on the server within the given path.
         """
 
         parent = self.getObject(path)
-        parent.makeDirectory(name)
+
+        code = 0
+        error = ''
+
+        if name in parent:
+            error = translate(_(u'filemanager_error_file_exists',
+                              default=u"File already exists."),
+                              context=self.request)
+            code = 1
+        else:
+            parent.makeDirectory(name)
 
         return {
-            'Parent': path,
-            'Name': name,
-            'Error': '',
-            'Code': 0,
+            'parent': path,
+            'name': name,
+            'error': error,
+            'code': code,
         }
 
     def add(self, path, newfile, replacepath=None):
-        """The add method adds the uploaded file to the specified path. Unlike
+        """Add the uploaded file to the specified path. Unlike
         the other methods, this method must return its JSON response wrapped in
         an HTML <textarea>, so the MIME type of the response is text/html
         instead of text/plain. The upload form in the File Manager passes the
@@ -318,10 +335,10 @@ var BASE_URL = '%s';
                 code = 1
 
         return {
-            "Path": path,
-            "Name": name,
-            "Error": error,
-            "Code": code,
+            "path": path,
+            "name": name,
+            "error": error,
+            "code": code,
         }
 
     def addNew(self, path, name):
@@ -344,36 +361,44 @@ var BASE_URL = '%s';
             self.resourceDirectory.writeFile(newPath.encode('utf-8'), '')
 
         return {
-            "Parent": path,
-            "Name": name,
-            "Error": error,
-            "Code": code,
+            "parent": path,
+            "name": name,
+            "error": error,
+            "code": code,
         }
 
     def rename(self, path, newName):
-        """The rename method renames the item at the path given in the "old"
-        parameter with the name given in the "new" parameter and returns an
-        object indicating the results of that action.
+        """Rename the item at the given path to the new name
         """
 
         npath = self.normalizePath(path)
         oldPath = newPath = '/'.join(npath.split('/')[:-1])
         oldName = npath.split('/')[-1]
-
         parent = self.getObject(oldPath)
-        parent.rename(oldName, newName)
+
+        code = 0
+        error = ''
+
+        if newName != oldName:
+            if newName in parent:
+                error = translate(_(u'filemanager_error_file_exists',
+                              default=u"File already exists."),
+                              context=self.request)
+                code = 1
+            else:
+                parent.rename(oldName, newName)
 
         return {
-            "Old Path": oldPath,
-            "Old Name": oldName,
-            "New Path": newPath,
-            "New Name": newName,
-            'Error': '',
-            'Code': 0,
+            "oldPath": oldPath,
+            "oldName": oldName,
+            "newPath": newPath,
+            "newName": newName,
+            'error': error,
+            'code': code,
         }
 
     def delete(self, path):
-        """The delete method deletes the item at the given path.
+        """Delete the item at the given path.
         """
 
         npath = self.normalizePath(path)
@@ -384,13 +409,45 @@ var BASE_URL = '%s';
         del parent[name]
 
         return {
-            'Path': path,
-            'Error': '',
-            'Code': 0,
+            'path': path,
+            'error': '',
+            'code': 0,
+        }
+
+    def move(self, path, directory):
+        """Move the item at the given path to a new directory
+        """
+        npath = self.normalizePath(path)
+        newParentPath = self.normalizePath(directory)
+
+        parentPath = self.parentPath(npath)
+        filename = npath.split('/')[-1]
+
+        parent = self.getObject(parentPath)
+        target = self.getObject(newParentPath)
+
+        obj = parent[filename]
+        del parent[filename]
+
+        code = 0
+        error = ''
+
+        if filename in parent:
+            error = translate(_(u'filemanager_error_file_exists',
+                              default=u"File already exists."),
+                              context=self.request)
+            code = 1
+        else:
+            target[filename] = obj
+
+        return {
+            'code': code,
+            'error': error,
+            'newPath': '/%s/%s' % (newParentPath, filename)
         }
 
     def download(self, path):
-        """The download method serves the requested file to the user.
+        """Serve the requested file to the user
         """
 
         npath = self.normalizePath(path)
@@ -407,6 +464,7 @@ var BASE_URL = '%s';
         # TODO: Use streams here if we can
         return parent.readFile(name)
 
+    # Helpers
     def getObject(self, path):
         path = self.normalizePath(path)
         if not path:
@@ -450,28 +508,6 @@ var BASE_URL = '%s';
         value = value.replace('\r\n', '\n')
         self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
         return ' '  # Zope no likey empty responses
-
-    def move(self, path, directory):
-        npath = self.normalizePath(path)
-        parentPath = self.parentPath(npath)
-        filename = npath.split('/')[-1]
-        parent = self.getObject(parentPath)
-        directory = self.normalizePath(directory)
-        todirectory = self.getObject(directory)
-        file = self.getObject(npath)
-        parent.context._delOb(filename)
-        count = 1
-        ext = self.getExtension(path, file)
-        while filename in parent:
-            filename = '%s-%i.%s' % (
-                filename.replace('.' + ext, ''),
-                count,
-                ext
-            )
-            count += 1
-        todirectory.context._setOb(filename, file)
-
-        return json.dumps({'newpath': '/%s/%s' % (directory, filename)})
 
     def filetree(self):
         def getFolder(root, relpath=''):

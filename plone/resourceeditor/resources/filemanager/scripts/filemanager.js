@@ -1,709 +1,782 @@
 /**
- *	Filemanager JS core
+ *  Filemanager JS core
  *
- *	filemanager.js
+ *  filemanager.js
  *
- *	@license	MIT License
- *	@author		Jason Huck - Core Five Labs
- *	@author		Simon Georget <simon (at) linea21 (dot) com>
+ *  @license    MIT License
+ *  @author     Jason Huck - Core Five Labs
+ *  @author     Simon Georget <simon (at) linea21 (dot) com>
  *  @author     Martin Aspeli
  *  @author     Nathan van Gheem
- *	@copyright	Authors
+ *  @copyright  Authors
  */
 
-(function($) {
-$(function(){
+jQuery(function($) {
 
-var _fileTree = $('#filetree');
-// var _editorHeight = $(window).height() - $('#buttons').height() - 30;
-var _editorHeight = 450;
+    $().ready(function(){
 
-var _prompt = $('#pb_prompt');
-_prompt.overlay({
-	mask: {
-		color: '#DDDDDD',
-		loadSpeed: 200,
-		opacity: 0.9
-	},
-	// top : 0,
-    fixed : false,
-    closeOnClick: false
-});
+        /*
+         * Variables
+         */
 
-var HTMLMode = require("ace/mode/html").Mode;
-var CSSMode  = require("ace/mode/css").Mode;
-var XMLMode  = require("ace/mode/xml").Mode;
-var JSMode   = require("ace/mode/javascript").Mode;
-var TextMode = require("ace/mode/text").Mode;
+        // Elements we are controlling
+        var fileManager = $("#filemanager");
+        var fileTree = $("#filetree");
+        var prompt = $("#pb_prompt");
 
-var _extensionModes = {
-    css: new CSSMode(),
-    js: new JSMode(),
-    htm: new HTMLMode(),
-    html: new HTMLMode(),
-    xml: new XMLMode()
-};
-var _defaultMode = new TextMode();
-var _editors = {};
+        // Settings
+        var editorHeight = 450;
+        // XXX: Previous code to dynamically resize
+        // var editorHeight = $(window).height() - $('#buttons').height() - 30;
 
-var getTree = function(){
-    return _fileTree.dynatree("getTree");
-}
+        var editors = {};
+        var nextEditorId = 0;
 
-var getCurrentFolder = function(){
-    var folder = _fileTree.dynatree("getActiveNode");
-    if(!folder){
-        folder = _fileTree.dynatree("getRoot");
-    }else if(!folder.data.isFolder){
-        folder = node.parent;
-    }
-    return folder;
-}
+        var HTMLMode = require("ace/mode/html").Mode;
+        var CSSMode  = require("ace/mode/css").Mode;
+        var XMLMode  = require("ace/mode/xml").Mode;
+        var JSMode   = require("ace/mode/javascript").Mode;
+        var TextMode = require("ace/mode/text").Mode;
 
-var getCurrentPath = function(){
-    return _fileTree.dynatree('getActiveNode');
-}
+        var extensionModes = {
+            css: new CSSMode(),
+            js: new JSMode(),
+            htm: new HTMLMode(),
+            html: new HTMLMode(),
+            xml: new XMLMode()
+        };
+        var defaultMode = new TextMode();
 
-var getFolder = function(node){
-    if(!node.data.isFolder){
-        node = node.parent;
-    }
-    return node;
-}
+        var currentFolder = '/';
 
-/* Show modal prompt
+        /*
+         * Helpers
+         */
 
-options = {
-	title: required title shown on prompt,
-	description: description of modal,
-	callback: called after button is clicked.
-		Return false to prevent closing modal.
-		Return a function to run after the modal has closed.
-	showInput: boolean to show input
-	inputValue: value input button should start with
-	onBeforeLoad: method to be called before loading the modal prompt
-}
+        // CSRF
 
-*/
-var showPrompt = function(options){
-	if(options.description === undefined){ options.description = '';}
-	if(options.buttons === undefined){ options.buttons = ['OK'];}
-	if(options.callback === undefined){ options.callback = function(){};}
-	if(options.showInput === undefined){ options.showInput = false;}
-	if(options.inputValue === undefined){ options.inputValue = '';}
-	if(options.onBeforeLoad === undefined){ options.onBeforeLoad = function(){};}
+        /**
+          * Get the current CSRF authentication token
+          */
+        function getAuthenicator(){
+            return $('input[name="_authenticator"]').eq(0).val();
+        }
 
-	// Clear old values
-	$('h1.documentFirstHeading,.documentDescription,.formControls', _prompt).html('');
-	$('.input', _prompt).empty();
-	if(options.showInput){
-		$('.input', _prompt).append('<input type="text" name="input" />');
-		$('input[type="text"]', _prompt).val(options.inputValue);
-	}
 
-	//fill new values
-	$('h1.documentFirstHeading', _prompt).html(options.title);
-	$('.documentDescription', _prompt).html(options.description);
-	for(var i=0; i<options.buttons.length; i++){
-		var button = options.buttons[i];
-		$('.formControls', _prompt).append(
-			'<input class="context" type="submit" name="form.button.' +
-			button + '" value="' + button + '">');
-	}
-	options.onBeforeLoad();
-	$('input[type="submit"]', _prompt).click(function(){
-		if(options.showInput){
-			result = options.callback($(this).val(), $('input[type="text"]', _prompt).val());
-		}else{
-			result = options.callback($(this).val());
-		}
-		if(result === false){
-			//cancel closing of form.
-			return false;
-		}
-		_prompt.overlay().close();
-		if(typeof(result) == 'function'){
-			result();
-		}
-		return false;
-	});
-	_prompt.overlay().load();
-}
+        // Prompt
 
-/* Get the csrf authentication value */
-var getAuthenicator = function(){
-    return $('input[name="_authenticator"]').eq(0).val();
-}
+        /**
+         * Show modal prompt in an overlay
+         *    options = {
+         *        title: required title shown on prompt,
+         *        description: description of modal,
+         *        callback: called after button is clicked.
+         *            Return false to prevent closing modal.
+         *            Return a function to run after the modal has closed.
+         *        showInput: boolean to show input
+         *        inputValue: value input button should start with
+         *        onBeforeLoad: method to be called before loading the modal prompt
+         *    }
+         */
+        function showPrompt(options){
+            if(options.description === undefined)  options.description = '';
+            if(options.buttons === undefined)      options.buttons = ['OK'];
+            if(options.callback === undefined)     options.callback = function(){};
+            if(options.showInput === undefined)    options.showInput = false;
+            if(options.inputValue === undefined)   options.inputValue = '';
+            if(options.onBeforeLoad === undefined) options.onBeforeLoad = function(){};
 
-/*---------------------------------------------------------
-  Setup, Layout, and Status Functions
----------------------------------------------------------*/
-
-// Forces columns to fill the layout vertically.
-// Called on initial page load and on resize.
-var setDimensions = function(){
-	// _editorHeight = $(window).height() - $('#buttons').height() - 30 - _previewHeight;
-	$('#splitter, #fileeditor, .vsplitbar').height(_editorHeight);
-	_fileTree.height(_editorHeight-25);
-	$('#fileeditor ul#aceeditors li pre').height(_editorHeight-32);
-}
-
-// nameFormat (), separate filename from extension
-var nameFormat = function(input) {
-	filename = '';
-	if(input.lastIndexOf('.') != -1) {
-		filename  = input.substr(0, input.lastIndexOf('.'));
-		filename += '.' + input.split('.').pop();
-	} else {
-		filename = input;
-	}
-	return filename;
-}
-
-var selectFile = function(node){
-    if(node.data.isFolder){
-        return;
-    }
-    var relselector = 'li[rel="' + node.data.key + '"]';
-    $("#fileselector li.selected,#aceeditors li.selected").removeClass('selected');
-    if($('#fileselector ' + relselector).size() == 0){
-        var tab = $('<li class="selected" rel="' + node.data.key + '">' + node.data.key + '</li>');
-        var close = $('<a href="#close" class="closebtn"> x </a>');
-        tab.click(function(){
-            $("#fileselector li.selected,#aceeditors li.selected").removeClass('selected');
-            $(this).addClass('selected');
-            $("#aceeditors li[rel='" + $(this).attr('rel') + "']").addClass('selected');
-            setSaveState();
-            $("#filemanager").trigger('resourceeditor.selected', node.data.key);
-        });
-        close.click(function(){
-            var tabel = $(this).parent();
-            var remove_tab = function(){
-                $("#filemanager").trigger('resourceeditor.closed', node.data.key);
-                if(tabel.hasClass('selected') && tabel.siblings("li").length > 0){
-                    var other = tabel.siblings("li").eq(0);
-                    other.addClass('selected');
-                    $("#aceeditors li[rel='" + other.attr('rel') + "']").addClass('selected');
-                    $("#filemanager").trigger('resourceeditor.selected', other.attr('rel'));
-                }
-                $("#aceeditors li[rel='" + tabel.attr('rel') + "']").remove();
-                tabel.remove();
+            // Clear old values
+            $('h1.documentFirstHeading,.documentDescription,.formControls', prompt).html('');
+            $('.input', prompt).empty();
+            if(options.showInput){
+                $('.input', prompt).append('<input type="text" name="input" />');
+                $('input[type="text"]', prompt).val(options.inputValue);
             }
-            var dirty = $('#fileselector li.selected').hasClass('dirty');
-            if(dirty){
-            	showPrompt({
-            		title: lg.prompt_unsavedchanges,
-            		description: lg.prompt_unsavedchanges_desc,
-            		buttons: [lg.yes, lg.no, lg.cancel],
-            		callback: function(button){
-            			if(button == lg.yes){
-            				$("#save").trigger('click');
-                            remove_tab();
-            			}else if(button == lg.no){
-            				remove_tab();
-            			}
-            		}
-            	});
-            }
-            if(!dirty){
-                remove_tab();
-            }
-            setSaveState();
-            return false;
-        })
-        tab.append(close);
-        $("#fileselector").append(tab);
-        $.ajax({
-            url: BASE_URL + '/@@plone.resourceeditor.getfile',
-            data: {path: node.data.key},
-            dataType: 'json',
-            success: function(data){
-                var editorId = 'id' + Math.floor(Math.random()*999999);
-                var li = $('<li class="selected" data-editorid="' + editorId + '" rel="' + node.data.key + '"></li>');
-                if(data.contents !== undefined){
-                    var extension = data.ext;
-                    var container = $('<pre id="' + editorId + '" name="' + node.data.key + '">' + data.contents + '</pre>');
-                    container.height(_editorHeight - 32);
-                    li.append(container);
-                    $("#aceeditors").append(li);
-                    var editor = ace.edit(editorId);
-                    editor.setTheme("ace/theme/textmate");
-                    editor.getSession().setTabSize(4);
-                    editor.getSession().setUseSoftTabs(true);
-                    editor.getSession().setUseWrapMode(false);
-                    var mode = _defaultMode;
-                    if (extension in _extensionModes) {
-                        mode = _extensionModes[extension];
-                    }
-                    editor.getSession().setMode(mode);
-                    editor.setShowPrintMargin(false);
 
-                    editor.getSession().setValue(data.contents);
-                    editor.navigateTo(0, 0);
-                    _editors[node.data.key] = editor;
-                    var markDirty = function(){
-                        $("#fileselector li[rel='" + node.data.key + "']").addClass('dirty');
-                        setSaveState();
-                    }
-                    editor.getSession().on('change', markDirty);
-                    $("#filemanager").trigger('resourceeditor.loaded', node.data.key);
+            // Fill new values
+            $('h1.documentFirstHeading', prompt).html(options.title);
+            $('.documentDescription', prompt).html(options.description);
+            for(var i = 0; i < options.buttons.length; ++i){
+                var button = options.buttons[i];
+                $('.formControls', prompt).append(
+                    '<input class="context" type="submit" name="form.button.' +
+                    button + '" value="' + button + '">');
+            }
+            options.onBeforeLoad();
+            $('input[type="submit"]', prompt).click(function(){
+                if(options.showInput){
+                    result = options.callback($(this).val(), $('input[type="text"]', prompt).val());
                 }else{
-                    li.append(data.info);
-                    $("#aceeditors").append(li);
+                    result = options.callback($(this).val());
                 }
+                if(result === false){
+                    //cancel closing of form.
+                    return false;
+                }
+                prompt.overlay().close();
+                if(typeof(result) == 'function'){
+                    result();
+                }
+                return false;
+            });
+            prompt.overlay().load();
+        }
+
+        // File tree
+
+        /**
+         * Get the currently selected folder in the file tree
+         */
+        function getCurrentFolder() {
+            return fileTree.dynatree("getTree").getNodeByKey(currentFolder);
+        }
+
+        /**
+         * Get the folder of the given node
+         */
+        function getFolder(node){
+            if(!node.data.isFolder){
+                node = node.parent;
             }
-        })
-    }
-    $("#fileselector " + relselector + ",#aceeditors " + relselector).addClass('selected');
-    $("#filemanager").trigger('resourceeditor.selected', node.data.key);
-}
+            return node;
+        }
 
-// Sets the folder status, upload, and new folder functions
-// to the path specified. Called on initial page load and
-// whenever a new directory is selected.
-var setUploader = function(path){
-	$('#buttons h1').text(lg.current_folder + path);
+        // Editor
 
-    // New
-    $('#addnew').unbind().click(function(){
-        var filename = '';
 
-        var getFileName = function(button, fname){
-            if(button != lg.create_file){ return; }
-            $('input', _prompt).attr('disabled', 'disabled');
-            var deffered = null;
-            if(fname != ''){
-                filename = fname;
+        /**
+         * Set the height of the editor and file tree
+         */
+        function resizeEditor(){
+            // editorHeight = $(window).height() - $('#buttons').height() - 30 - _previewHeight;
+            $('#splitter, #fileeditor, .vsplitbar').height(editorHeight);
+            fileTree.height(editorHeight-25);
+            $('#fileeditor ul#aceeditors li pre').height(editorHeight-32);
+        }
+
+        /**
+         * Enable or disable the Save button depending on whether the current
+         * file is dirty or not
+         */
+        function setSaveState(){
+            var li = $("#fileselector li.selected");
+            if(li.hasClass('dirty')){
+                $("#save")[0].disabled = false;
+            }else{
+                $("#save")[0].disabled = true;
+            }
+        }
+
+        // File operations
+
+        /**
+         * Open the file with the given path
+         */
+        function openFile(path){
+            var relselector = 'li[rel="' + path + '"]';
+
+            // Unselect current tab
+            $("#fileselector li.selected, #aceeditors li.selected").removeClass('selected');
+
+            // Do we have this file already? If not ...
+            if($('#fileselector ' + relselector).size() == 0) {
+
+                // Create elements for the tab and close button
+                var tab = $('<li class="selected" rel="' + path + '">' + path + '</li>');
+                var close = $('<a href="#close" class="closebtn"> x </a>');
+
+                // Switch to the relevant tab when clicked
+                tab.click(function(){
+                    $("#fileselector li.selected,#aceeditors li.selected").removeClass('selected');
+                    $(this).addClass('selected');
+                    $("#aceeditors li[rel='" + $(this).attr('rel') + "']").addClass('selected');
+                    setSaveState();
+                    fileManager.trigger('resourceeditor.selected', path);
+
+                    return false;
+                });
+
+                // Close the tab, prompting if there are unsaved changes, when
+                // clicking the close button
+                close.click(function(){
+                    var tabElement = $(this).parent();
+
+                    function removeTab(){
+                        fileManager.trigger('resourceeditor.closed', path);
+                        if(tabElement.hasClass('selected') && tabElement.siblings("li").length > 0){
+                            var other = tabElement.siblings("li").eq(0);
+                            other.addClass('selected');
+                            $("#aceeditors li[rel='" + other.attr('rel') + "']").addClass('selected');
+                            fileManager.trigger('resourceeditor.selected', other.attr('rel'));
+                        }
+                        $("#aceeditors li[rel='" + tabElement.attr('rel') + "']").remove();
+                        tabElement.remove();
+                    }
+
+                    // Are there unsaved changes?
+                    var dirty = $('#fileselector li.selected').hasClass('dirty');
+                    if(dirty){
+                        showPrompt({
+                            title: localizedMessages.prompt_unsavedchanges,
+                            description: localizedMessages.prompt_unsavedchanges_desc,
+                            buttons: [localizedMessages.yes, localizedMessages.no, localizedMessages.cancel],
+                            callback: function(button){
+                                if(button == localizedMessages.yes) {
+                                    $("#save").trigger('click');
+                                    removeTab();
+                                } else if(button == localizedMessages.no) {
+                                    removeTab();
+                                }
+                            }
+                        });
+                    } else {
+                        removeTab();
+                    }
+
+                    setSaveState();
+                    return false;
+                })
+
+                // Add the tab and close elements to the page
+                tab.append(close);
+                $("#fileselector").append(tab);
+
+                // Load the file from the server
                 $.ajax({
-                    url: FILE_CONNECTOR,
-                    data: {
-                        mode: 'addnew',
-                        path: getCurrentFolder().data.key,
-                        name: filename,
-                        _authenticator: getAuthenicator()
-                    },
-                    async: false,
-                    type: 'POST',
-                    success: function(result){
-                        if(result['Code'] == 0){
-                            getCurrentFolder().addChild({ title: result['Name'], key: result['Name'] });
-                        } else {
-                            deffered = function(){ showPrompt({title:result['Error']}); }
+                    url: BASE_URL + '/@@plone.resourceeditor.getfile',
+                    data: {path: path},
+                    dataType: 'json',
+                    success: function(data){
+
+                        var editorId = 'editor-' + nextEditorId++;
+                        var editorListItem = $('<li class="selected" data-editorid="' + editorId + '" rel="' + path + '"></li>');
+
+                        if(data.contents !== undefined){
+                            var extension = data.ext;
+                            var editorArea = $('<pre id="' + editorId + '" name="' + path + '">' + data.contents + '</pre>');
+                            editorArea.height(editorHeight - 32);
+                            editorListItem.append(editorArea);
+                            $("#aceeditors").append(editorListItem);
+
+                            var mode = defaultMode;
+                            if (extension in extensionModes) {
+                                mode = extensionModes[extension];
+                            }
+
+                            function markDirty(){
+                                $("#fileselector li[rel='" + path + "']").addClass('dirty');
+                                setSaveState();
+                            }
+
+                            var editor = new SourceEditor(editorId, mode, data.contents, false, markDirty)
+                            editors[path] = editor;
+
+                            fileManager.trigger('resourceeditor.loaded', path);
+                        } else{
+                            editorListItem.append(data.info);
+                            $("#aceeditors").append(editorListItem);
                         }
                     }
                 });
-            } else {
-                deffered = function(){ showPrompt({title: lg.no_filename}); }
             }
-            return deffered;
+
+            // Activate the given tab and editor
+            $("#fileselector " + relselector + ", #aceeditors " + relselector).addClass('selected');
+            fileManager.trigger('resourceeditor.selected', path);
         }
-        var btns = [lg.create_file, lg.cancel];
-        showPrompt({
-            title: lg.create_file,
-	        description: lg.prompt_filename,
-	        callback: getFileName,
-	        buttons: btns,
-	        inputValue: filename,
-	        showInput: true});
-    });
 
-	$('#newfolder').unbind().click(function(){
-		var foldername =  lg.default_foldername;
+        /**
+         * Rename an item, prompting for a filename
+         */
+        function renameItem(node){
+            var finalName = '';
+            var path = node.data.key;
 
-		var getFolderName = function(button, fname){
-			if(button != lg.create_folder){return;}
-			$('input', _prompt).attr('disabled', 'disabled');
-			var deffered = null;
-			if(fname != ''){
-				foldername = fname;
-				$.ajax({
-					url: FILE_CONNECTOR,
-					data: {
-                        mode: 'addfolder',
-                        path: getCurrentFolder().data.key,
-                        name: foldername,
+            showPrompt({
+                title: localizedMessages.rename,
+                description: localizedMessages.new_filename,
+                buttons: [localizedMessages.rename, localizedMessages.cancel],
+                inputValue: node.data.title,
+                showInput: true,
+                callback: function(button, rname){
+                    if(button != localizedMessages.rename)
+                        return;
+
+                    var deferred = function(){};
+
+                    if(rname === '')
+                        return deferred;
+
+                    $.ajax({
+                        type: 'POST',
+                        url: FILE_CONNECTOR,
+                        data: {
+                            mode: 'rename',
+                            old: path,
+                            new: rname,
+                            _authenticator: getAuthenicator()
+                        },
+                        dataType: 'json',
+                        async: false,
+                        success: function(result){
+                            finalName = result['newName'];
+                            if(result['code'] == 0){
+                                // Update the file tree
+                                var newPath = result['newPath'];
+                                var newName = result['newName'];
+                                node = fileTree.dynatree("getTree").getNodeByKey(node.data.key);
+                                node.data.title = newName;
+                                node.data.key = newPath;
+                                node.render();
+                                deferred = function(){
+                                    showPrompt({title: localizedMessages.successful_rename});
+                                }
+                            } else {
+                                deferred = function(){
+                                    showPrompt({title: result['error']});
+                                }
+                            }
+                        }
+                    });
+
+                    return deferred;
+                }
+            });
+
+            return finalName;
+        }
+
+        /**
+         * Delete an item, prompting for confirmation
+         */
+        function deleteItem(node){
+            var isDeleted = false;
+            var path = node.data.key;
+
+            showPrompt({
+                title: localizedMessages.confirmation_delete,
+                buttons: [localizedMessages.yes, localizedMessages.no],
+                callback: function(button, value){
+                    if(button != localizedMessages.yes)
+                        return;
+
+                    var deferred = function(){};
+
+                    $.ajax({
+                        type: 'POST',
+                        url: FILE_CONNECTOR,
+                        dataType: 'json',
+                        data: {
+                            mode: 'delete',
+                            path: path,
+                            _authenticator: getAuthenicator()
+                        },
+                        async: false,
+                        success: function(result){
+                            if(result['code'] == 0){
+                                node.remove();
+                                isDeleted = true;
+                            } else {
+                                isDeleted = false;
+                                deferred = function(){
+                                    showPrompt({title: result['error']});
+                                }
+                            }
+                        }
+                    });
+                    return deferred;
+                }
+            });
+
+            return isDeleted;
+        }
+
+        /**
+         * Add a new blank file in the currently selected folder, prompting for file name.
+         */
+        function addNewFile(node){
+            var filename = '';
+            var path = node.data.key;
+
+            showPrompt({
+                title: localizedMessages.create_file,
+                description: localizedMessages.prompt_filename,
+                buttons: [localizedMessages.create_file, localizedMessages.cancel],
+                inputValue: filename,
+                showInput: true,
+                callback: function(button, fname){
+                    if(button != localizedMessages.create_file)
+                        return;
+
+                    var deferred = null;
+                    if(fname != ''){
+                        filename = fname;
+                        $.ajax({
+                            url: FILE_CONNECTOR,
+                            data: {
+                                mode: 'addnew',
+                                path: path,
+                                name: filename,
+                                _authenticator: getAuthenicator()
+                            },
+                            async: false,
+                            type: 'POST',
+                            success: function(result){
+                                if(result['code'] == 0){
+                                    node.addChild({
+                                        title: result['name'],
+                                        key: result['parent'] + '/' + result['name']
+                                    });
+                                } else {
+                                    deferred = function(){
+                                        showPrompt({title:result['error']});
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        deferred = function(){ showPrompt({title: localizedMessages.no_filename}); }
+                    }
+                    return deferred;
+                }
+            });
+        }
+
+        /**
+         * Add a new folder, under the currently selected folder prompting for folder name
+         */
+        function addNewFolder(node){
+            var foldername =  localizedMessages.default_foldername;
+            var path = node.data.key;
+
+            showPrompt({
+                title: localizedMessages.create_folder,
+                description: localizedMessages.prompt_foldername,
+                buttons: [localizedMessages.create_folder, localizedMessages.cancel],
+                inputValue: foldername,
+                showInput: true,
+                callback: function(button, fname){
+                    if(button != localizedMessages.create_folder)
+                        return;
+
+                    var deferred = null;
+                    if(fname != ''){
+                        foldername = fname;
+                        $.ajax({
+                            url: FILE_CONNECTOR,
+                            data: {
+                                mode: 'addfolder',
+                                path: path,
+                                name: foldername,
+                                _authenticator: getAuthenicator()
+                            },
+                            async: false,
+                            type: 'POST',
+                            success: function(result){
+                                if(result['code'] == 0){
+                                    node.addChild({
+                                        title: result['name'],
+                                        key: result['parent'] + '/' + result['name'],
+                                        isFolder: true
+                                    });
+                                } else {
+                                    deferred = function() {
+                                        showPrompt({title:result['error']});
+                                    }
+                                }
+                            }
+                        })
+                    } else {
+                        deferred = function(){ showPrompt({title: localizedMessages.no_foldername});}
+                    }
+                    return deferred
+                }
+            });
+        }
+
+        /**
+         * Upload a new file to the current folder
+         */
+        function uploadFile(node){
+            var form = null;
+            var input = null;
+            var path = node.data.key;
+
+            if(path[0] == '/'){
+                path = path.substring(1);
+            }
+
+            showPrompt({
+                title: localizedMessages.upload,
+                description: localizedMessages.prompt_fileupload,
+                buttons: [localizedMessages.upload, localizedMessages.cancel],
+                onBeforeLoad: function(){
+                    if($('#fileselector li.selected').size() == 0){
+                        $('input[value="' + localizedMessages.upload_and_replace_current + '"]', prompt).remove();
+                    }
+                    input = $('<input id="newfile" name="newfile" type="file" />');
+                    form = $('<form method="post" action="' + FILE_CONNECTOR + '?mode=add"></form>');
+                    form.append(input);
+                    $('.input', prompt).append(form);
+                    form.ajaxForm({
+                        target: '#uploadresponse',
+                        beforeSubmit: function(arr, form, options) {
+
+                        },
+                        data: {
+                            currentpath: path,
+                            _authenticator: getAuthenicator()
+                        },
+                        success: function(result){
+                            prompt.overlay().close();
+                            var data = jQuery.parseJSON($('#uploadresponse').find('textarea').text());
+
+                            if(data['code'] == 0){
+                                var node = node.addChild({ title: data['name'], key: data['name'] });
+                                node.render();
+                            } else {
+                                showPrompt({title: data['error']});
+                            }
+                        },
+                        forceSync: true
+                    });
+                },
+                callback: function(button){
+                    if(button == localizedMessages.cancel) {
+                        return true;
+                    }
+                    form.trigger('submit');
+                    return false;
+                }
+            });
+        }
+
+        /**
+         * Binds contextual menus to items in list and grid views.
+         */
+        function bindMenus(span){
+            $(span).contextMenu({menu: "itemOptions"}, function(action, el, pos) {
+                // The event was bound to the <span> tag, but the node object
+                // is stored in the parent <li> tag
+                var node = $.ui.dynatree.getNode(el);
+                switch(action) {
+                    case "rename":
+                        var newName = renameItem(node);
+                        break;
+                    case "delete":
+                        deleteItem(node);
+                        break;
+                    default:
+                        break;
+                }
+            });
+        }
+
+        /**
+         * Save the current file
+         */
+        function saveFile(path){
+            var editor = editors[path];
+            $.ajax({
+                url: BASE_URL + '/@@plone.resourceeditor.savefile',
+                data: {
+                    path: path,
+                    value: editor.getValue()
+                },
+                type: 'POST',
+                success: function() {
+                    $("#fileselector li[rel='" + path + "']").removeClass('dirty');
+                    setSaveState();
+                    fileManager.trigger('resourceeditor.saved', path);
+                }
+            });
+        }
+
+        /*
+         * Initialization
+         */
+
+         // Warn before closing the page if there are changes
+        window.onbeforeunload = function() {
+            if($('#fileselector li.dirty').size() > 0){
+                return localizedMessages.prompt_unsavedchanges;
+            }
+        };
+
+        // Set up overlay support
+        prompt.overlay({
+            mask: {
+                color: '#dddddd',
+                loadSpeed: 200,
+                opacity: 0.9
+            },
+            // top : 0,
+            fixed : false,
+            closeOnClick: false
+        });
+
+        // Adjust layout.
+        resizeEditor();
+        $(window).resize(resizeEditor);
+
+        // Populate localised messages
+        $('#upload').append(localizedMessages.upload);
+        $('#addnew').append(localizedMessages.add_new);
+        $('#save').append(localizedMessages.savemsg);
+        $('#saveall').append(localizedMessages.saveallmsg);
+        $('#newfolder').append(localizedMessages.new_folder);
+        $('#itemOptions a[href$="#download"]').append(localizedMessages.download);
+        $('#itemOptions a[href$="#rename"]').append(localizedMessages.rename);
+        $('#itemOptions a[href$="#delete"]').append(localizedMessages.del);
+
+        // Provides support for adjustible columns.
+        $('#splitter').splitter({
+            sizeLeft: 200
+        });
+
+        // cosmetic tweak for buttons
+        $('button').wrapInner('<span></span>');
+
+        // Bind toolbar buttons
+
+        $('#addnew').click(function(){
+            addNewFile(getCurrentFolder());
+            return false;
+        });
+
+        $('#newfolder').click(function() {
+            addNewFolder(getCurrentFolder());
+            return false;
+        });
+
+        $("#upload").click(function(){
+            uploadFile(getCurrentFolder());
+            return false;
+        });
+
+        $("#save").click(function(){
+            var path = $("#fileselector li.selected").attr('rel');
+            saveFile(path);
+            return false;
+        });
+
+        // Configure the file tree
+
+        $("#filetree").dynatree({
+            initAjax: {
+              url: BASE_URL + '/@@plone.resourceeditor.filetree',
+            },
+            dnd: {
+              autoExpandMS: 1000,
+              preventVoidMoves: true, // Prevent dropping nodes 'before self', etc.
+              onDragStart: function(node) {
+                return true;
+              },
+              onDragStop: function(node) {
+              },
+              onDragEnter: function(node, sourceNode) {
+                return ["before", "after"];
+              },
+              onDragLeave: function(node, sourceNode) {
+              },
+              onDragOver: function(node, sourceNode, hitMode) {
+                if(node.isDescendantOf(sourceNode)) return false;
+              },
+              onDrop: function(node, sourceNode, hitMode, ui, draggable) {
+                sourceNode.move(node, hitMode);
+                $.ajax({
+                    type: 'POST',
+                    url: FILE_CONNECTOR,
+                    dataType: 'json',
+                    data: {
+                        mode: 'move',
+                        path: sourceNode.data.key,
+                        directory: getFolder(node).data.key,
                         _authenticator: getAuthenicator()
                     },
                     async: false,
-                    type: 'POST',
                     success: function(result){
-				        if(result['Code'] == 0){
-                            getCurrentFolder().addChild({ title: result['Name'], key: result['Name'], isFolder: true });
-				        } else {
-                            deffered = function(){ showPrompt({title:result['Error']});}
-				        }
-				    }
-            	})
-			} else {
-				deffered = function(){ showPrompt({title: lg.no_foldername});}
-			}
-			return deffered
-		}
-		var btns = [lg.create_folder, lg.cancel];
-		showPrompt({
-            title: lg.create_folder,
-			description: lg.prompt_foldername,
-			callback: getFolderName,
-			buttons: btns,
-			inputValue: foldername,
-			showInput: true});
-	});
-}
-
-// Renames the current item and returns the new name.
-// Called by clicking the "Rename" button in detail views
-// or choosing the "Rename" contextual menu option in
-// list views.
-var renameItem = function(node){
-	var finalName = '';
-
-	var getNewName = function(button, rname){
-		if(button != lg.rename){ return; }
-		var deffered = function(){};
-
-		if(rname != ''){
-			var givenName = nameFormat(rname);
-
-			$.ajax({
-				type: 'POST',
-				url: FILE_CONNECTOR,
-                data: {
-                    mode: 'rename',
-                    old: node.data.key,
-                    new: givenName,
-                    _authenticator: getAuthenicator()
-                },
-				dataType: 'json',
-				async: false,
-				success: function(result){
-					finalName = result['New Name'];
-					if(result['Code'] == 0){
-						var newPath = result['New Path'];
-						var newName = result['New Name'];
-                        node = getTree().getNodeByKey(node.data.key);
-                        node.data.title = newName;
-                        node.data.key = newPath;
-                        node.render();
-						deffered = function(){ showPrompt({title: lg.successful_rename}); }
-					} else {
-						deffered = function(){ showPrompt({title: result['Error']}); }
-					}
-				}
-			});
-		}
-		return deffered
-	}
-	var btns = [lg.rename, lg.cancel];
-	showPrompt({
-        title: lg.rename,
-		description: lg.new_filename,
-		callback: getNewName,
-		buttons: btns,
-		inputValue: node.data.title,
-		showInput: true});
-
-	return finalName;
-}
-
-// Prompts for confirmation, then deletes the current item.
-// Called by clicking the "Delete" button in detail views
-// or choosing the "Delete contextual menu item in list views.
-var deleteItem = function(node){
-	var isDeleted = false;
-	var msg = lg.confirmation_delete;
-
-	var doDelete = function(button, value){
-		if(button != lg.yes){ return; }
-		var deffered = function(){};
-		$.ajax({
-			type: 'POST',
-			url: FILE_CONNECTOR,
-			dataType: 'json',
-            data: {
-                mode: 'delete',
-                path: encodeURIComponent(node.data.key),
-                _authenticator: getAuthenicator()
+                        if(result['code'] == 0){
+                            sourceNode.data.key = result['newPath'];
+                            sourceNode.render();
+                        } else {
+                            showPrompt({title: result['error']});
+                        }
+                    }
+                });
+              }
             },
-			async: false,
-			success: function(result){
-				if(result['Code'] == 0){
-                    node.remove();
-					var rootpath = result['Path'].substring(0, result['Path'].length-1); // removing the last slash
-					rootpath = rootpath.substr(0, rootpath.lastIndexOf('/') + 1);
-					$('#buttons h1').text(lg.current_folder + rootpath);
-					isDeleted = true;
-				} else {
-					isDeleted = false;
-					deffered = function(){ showPrompt({title: result['Error']});}
-				}
-			}
-		});
-		return deffered;
-	}
-	var btns = [lg.yes, lg.no];
-	showPrompt({title: msg, callback: doDelete, buttons: btns});
-
-	return isDeleted;
-}
-
-// Binds contextual menus to items in list and grid views.
-var setMenus = function(span){
-    $(span).contextMenu({menu: "itemOptions"}, function(action, el, pos) {
-        // The event was bound to the <span> tag, but the node object
-        // is stored in the parent <li> tag
-        var node = $.ui.dynatree.getNode(el);
-        switch( action ) {
-            case "rename":
-                var newName = renameItem(node);
-                break;
-            case "delete":
-                deleteItem(node);
-                break;
-            default:
-                break;
-        }
-    });
-}
-
-var setSaveState = function(){
-    var li = $("#fileselector li.selected");
-    if(li.hasClass('dirty')){
-        $("#save")[0].disabled = false;
-    }else{
-        $("#save")[0].disabled = true;
-    }
-}
-
-/*---------------------------------------------------------
-  Initialization
----------------------------------------------------------*/
-
-// Adjust layout.
-setDimensions();
-$(window).resize(setDimensions);
-
-// we finalize the FileManager UI initialization
-// with localized text if necessary
-$('#upload').append(lg.upload);
-$('#addnew').append(lg.add_new);
-$('#save').append(lg.savemsg);
-$('#saveall').append(lg.saveallmsg);
-$('#newfolder').append(lg.new_folder);
-$('#itemOptions a[href$="#download"]').append(lg.download);
-$('#itemOptions a[href$="#rename"]').append(lg.rename);
-$('#itemOptions a[href$="#delete"]').append(lg.del);
-
-// Provides support for adjustible columns.
-$('#splitter').splitter({
-	sizeLeft: 200
-});
-
-// cosmetic tweak for buttons
-$('button').wrapInner('<span></span>');
-
-// Provide initial values for upload form, status, etc.
-setUploader(FILE_ROOT);
-
-$("#upload").click(function(){
-	var form = null;
-	var input = null;
-	var buttonClicked = null;
-	var currentPath = getCurrentFolder().data.key;
-	if(currentPath[0] == '/'){
-		currentPath = currentPath.substring(1);
-	}
-	showPrompt({
-        title: lg.upload,
-		description: lg.prompt_fileupload,
-		buttons: [lg.upload, lg.upload_and_replace, lg.upload_and_replace_current, lg.cancel],
-		onBeforeLoad: function(){
-			if($('#fileselector li.selected').size() == 0){
-				$('input[value="' + lg.upload_and_replace_current + '"]', _prompt).remove();
-			}
-			input = $('<input id="newfile" name="newfile" type="file" />');
-			form = $('<form method="post" action="' + FILE_CONNECTOR + '?mode=add"></form>');
-			form.append(input);
-			$('.input', _prompt).append(form);
-			input.change(function(){
-                // XXX find a way to validate with new tree...
-				if(true){
-					$('input[value="' + lg.upload_and_replace + '"]', _prompt).show();
-					$('input[value="' + lg.upload + '"]', _prompt).hide();
-				}else{
-					$('input[value="' + lg.upload_and_replace + '"]', _prompt).hide();
-					$('input[value="' + lg.upload + '"]', _prompt).show();
-				}
-			});
-			$('input[value="' + lg.upload_and_replace + '"]', _prompt).hide();
-			form.ajaxForm({
-				target: '#uploadresponse',
-				beforeSubmit: function(arr, form, options) {
-
-				},
-				data: {
-					currentpath: getCurrentFolder().data.key,
-					_authenticator: getAuthenicator()
-				},
-				success: function(result){
-					_prompt.overlay().close();
-					var data = jQuery.parseJSON($('#uploadresponse').find('textarea').text());
-
-					if(data['Code'] == 0){
-                        var node = getCurrentFolder().addChild({ title: result['Name'], key: result['Name'] });
-                        node.render();
-					} else {
-						showPrompt({title: data['Error']});
-					}
-				},
-				forceSync: true
-			});
-		},
-		callback: function(button){
-			buttonClicked = button;
-			if(button == lg.upload_and_replace){
-				form.append('<input type="hidden" name="replacepath" value="' +
-					currentPath + input.val() + '" />');
-			}else if(button == lg.upload_and_replace_current){
-				form.append('<input type="hidden" name="replacepath" value="' +
-					$('#fileselector li.selected').attr('rel') + '" />');
-			}else if(button == lg.cancel){
-				return true;
-			}
-			form.trigger('submit');
-			$('input', _prompt).attr('disabled', 'disabled');
-			return false;
-		}
-	})
-});
-
-$("#filetree").dynatree({
-    initAjax: {
-      url: BASE_URL + '/@@plone.resourceeditor.filetree',
-    },
-    dnd: {
-      onDragStart: function(node) {
-        return true;
-      },
-      onDragStop: function(node) {
-      },
-      autoExpandMS: 1000,
-      preventVoidMoves: true, // Prevent dropping nodes 'before self', etc.
-      onDragEnter: function(node, sourceNode) {
-        return ["before", "after"];
-      },
-      onDragOver: function(node, sourceNode, hitMode) {
-        if(node.isDescendantOf(sourceNode)) return false;
-      },
-      onDrop: function(node, sourceNode, hitMode, ui, draggable) {
-        sourceNode.move(node, hitMode);
-        $.ajax({
-            type: 'POST',
-            url: FILE_CONNECTOR,
-            dataType: 'json',
-            data: {
-                mode: 'move',
-                path: encodeURIComponent(sourceNode.data.key),
-                directory: encodeURIComponent(getFolder(node).data.key),
-                _authenticator: getAuthenicator()
+            onCreate: function(node, span){
+                bindMenus(span);
             },
-            async: false,
-            success: function(result){
-                sourceNode.data.key = result.newpath;
-                sourceNode.render();
+            onClick: function(node, event) {
+                // Close menu on click
+                if( $(".contextMenu:visible").length > 0 ){
+                  $(".contextMenu").hide();
+                }
+            },
+            onActivate: function(node) {
+                var path = node.data.key;
+                if(node.data.isFolder) {
+                    currentFolder = path;
+                } else {
+                    openFile(path);
+                }
             }
         });
-      },
-      onDragLeave: function(node, sourceNode) {
-      }
-    },
-    onCreate: function(node, span){
-        setMenus(span);
-    },
-    onClick: function(node, event) {
-        // Close menu on click
-        if( $(".contextMenu:visible").length > 0 ){
-          $(".contextMenu").hide();
-        }
-    },
-    onActivate: selectFile
-});
 
-$("#save").live('click', function(){
-    var li = $("#fileselector li.selected");
-    var path = li.attr('rel');
-    var editor = _editors[path];
-    $.ajax({
-        url: BASE_URL + '/@@plone.resourceeditor.savefile',
-        data: {path: path, value: editor.getSession().getValue()},
-        type: 'POST',
-        success: function(){
-            $("#fileselector li[rel='" + path + "']").removeClass('dirty');
-            setSaveState();
-            $("#filemanager").trigger('resourceeditor.saved', path);
-        }
+        // Set up key bindings for the editor
+
+        var canon = require('pilot/canon');
+        canon.addCommand({
+            name: 'saveEditor',
+            bindKey: {
+                mac: 'Command-S',
+                win: 'Ctrl-S',
+                sender: 'editor'
+            },
+            exec: function(env, args, request) {
+                var path = $("#fileselector li.selected").attr('rel');
+                saveFile(path);
+            }
+        });
+
+        canon.addCommand({
+            name: 'newFile',
+            bindKey: {
+                mac: 'Command-N',
+                win: 'Ctrl-N',
+                sender: 'editor'
+            },
+            exec: function(env, args, request) {
+                addNewFile(getCurrentFolder());
+            }
+        });
+
+        canon.addCommand({
+            name: 'newFolder',
+            bindKey: {
+                mac: 'Command-Shift-N',
+                win: 'Ctrl+Shift+N',
+                sender: 'editor'
+            },
+            exec: function(env, args, request) {
+                addNewFolder(getCurrentFolder());
+            }
+        });
+
+        canon.addCommand({
+            name: 'closeTab',
+            bindKey: {
+                mac: 'Command-W',
+                win: 'Ctrl+W',
+                sender: 'editor'
+            },
+            exec: function(env, args, request) {
+                $('#fileselector li.selected a.closebtn').trigger('click');
+            }
+        });
+
     });
-    return false;
 });
-
-// Disable select function if no window.opener
-if(window.opener == null) $('#itemOptions a[href$="#select"]').remove();
-
-
-window.onbeforeunload = function() {
-	if($('#fileselector li.dirty').size() > 0){
-		return lg.prompt_unsavedchanges;
-	}
-};
-
-/* key bindings */
-var canon = require('pilot/canon');
-canon.addCommand({
-    name: 'saveEditor',
-    bindKey: {
-        mac: 'Command-S',
-        win: 'Ctrl-S',
-        sender: 'editor'
-    },
-    exec: function(env, args, request) {
-        $('#save').trigger('click');
-    }
-});
-
-canon.addCommand({
-    name: 'newFile',
-    bindKey: {
-        mac: 'Command-N',
-        win: 'Ctrl-N',
-        sender: 'editor'
-    },
-    exec: function(env, args, request) {
-        $('#addnew').trigger('click');
-    }
-});
-
-canon.addCommand({
-    name: 'newFolder',
-    bindKey: {
-        mac: 'Command-Shift-N',
-        win: 'Ctrl+Shift+N',
-        sender: 'editor'
-    },
-    exec: function(env, args, request) {
-        $('#newfolder').trigger('click');
-    }
-});
-
-canon.addCommand({
-    name: 'closeTab',
-    bindKey: {
-        mac: 'Command-W',
-        win: 'Ctrl+W',
-        sender: 'editor'
-    },
-    exec: function(env, args, request) {
-        $('#fileselector li.selected a.closebtn').trigger('click');
-    }
-});
-
-});
-})(jQuery);

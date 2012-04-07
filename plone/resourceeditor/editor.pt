@@ -46,13 +46,13 @@
         <metal:block define-macro="filemanager-scripts" tal:define="resourceDirectory nocall:resourceDirectory | nocall:context">
             <script type="text/javascript" tal:content="structure resourceDirectory/@@plone.resourceeditor.filemanager/filemanagerConfiguration"></script>
             <script type="text/javascript">
-            var lg = {}; // Languages for the file manager
+            var localizedMessages = {}; // Languages for the file manager
 
             jQuery(function($) {
 
                 $().ready(function() {
                     $("#messages span").each(function() {
-                        lg[$(this).attr('id')] = $(this).text();
+                        localizedMessages[$(this).attr('id')] = $(this).text();
                     });
 
                     // #itemOptions needs to be at top level
@@ -120,7 +120,7 @@
             <div style="display:none" id="messages">
                 <tal:comment replace="nothing">
                     Use page template translation machinery to translate message strings.
-                    These are put into the JavaScript array 'lg', which is used in
+                    These are put into the JavaScript array 'localizedMessages', which is used in
                     filemanager.js to lookup languages. This takes the place of the
                     'culture' JS file approach in the default filemanager.
                 </tal:comment>
@@ -165,7 +165,7 @@
                 <span id='dimensions' i18n:translate='filemanager_dimensions'>Dimensions</span>
                 <span id='no' i18n:translate='filemanager_no'>No</span>
                 <span id='UNABLE_TO_CREATE_DIRECTORY' i18n:translate='filemanager_UNABLE_TO_CREATE_DIRECTORY'>Unable to create the directory %s.</span>
-                <span id='confirmation_delete' i18n:translate='filemanager_confirmation_delete'>Are you sure you wish to delete this file?</span>
+                <span id='confirmation_delete' i18n:translate='filemanager_confirmation_delete'>Are you sure you want to delete this item?</span>
                 <span id='UPLOAD_IMAGES_ONLY' i18n:translate='filemanager_UPLOAD_IMAGES_ONLY'>Please upload only images, no other files are supported.</span>
                 <span id='fck_select_integration' i18n:translate='filemanager_fck_select_integration'>The 'Select' function is only used for integration with FCKEditor.</span>
                 <span id='INVALID_ACTION' i18n:translate='filemanager_INVALID_ACTION'>Invalid action.</span>
