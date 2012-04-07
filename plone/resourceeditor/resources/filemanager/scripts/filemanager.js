@@ -533,8 +533,12 @@ jQuery(function($) {
                             var data = jQuery.parseJSON($('#uploadresponse').find('textarea').text());
 
                             if(data['code'] == 0){
-                                var node = node.addChild({ title: data['name'], key: data['name'] });
-                                node.render();
+                                // XXX: Assumes we always add to current folder
+                                getCurrentFolder().addChild({
+                                    title: data['name'],
+                                    key: data['name'],
+                                    isFolder: false
+                                });
                             } else {
                                 showPrompt({title: data['error']});
                             }
