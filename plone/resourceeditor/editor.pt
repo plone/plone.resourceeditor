@@ -52,7 +52,7 @@
 
                 $().ready(function() {
                     $("#messages span").each(function() {
-                        localizedMessages[$(this).attr('id')] = $(this).text();
+                        localizedMessages[$(this).attr('data-message-id')] = $(this).text();
                     });
 
                     // #itemOptions needs to be at top level
@@ -122,25 +122,32 @@
                     filemanager.js to lookup languages. This takes the place of the
                     'culture' JS file approach in the default filemanager.
                 </tal:comment>
-                <span id='cancel' i18n:translate='filemanager_cancel'>Cancel</span>
-                <span id='yes' i18n:translate='filemanager_yes'>Yes</span>
-                <span id='upload' i18n:translate='filemanager_upload'>Upload</span>
-                <span id='upload_and_replace' i18n:translate='filemanager_upload_and_replace'>Upload and Replace</span>
-                <span id='upload_and_replace_current' i18n:translate='filemanager_upload_and_replace_current'>Upload and Replace Current File</span>
-                <span id='successful_rename' i18n:translate='filemanager_successful_rename'>Rename successful.</span>
-                <span id='create_folder' i18n:translate='filemanager_create_folder'>Create Folder</span>
-                <span id='rename' i18n:translate='filemanager_rename'>Rename</span>
-                <span id='prompt_foldername' i18n:translate='filemanager_prompt_foldername'>Enter the name of the new folder</span>
-                <span id='no_foldername' i18n:translate='filemanager_no_foldername'>No folder name was provided.</span>
-                <span id='no' i18n:translate='filemanager_no'>No</span>
-                <span id='confirmation_delete' i18n:translate='filemanager_confirmation_delete'>Are you sure you want to delete this item?</span>
-                <span id='new_filename' i18n:translate='filemanager_new_filename'>Enter a new name for the file</span>
-                <span id='no_filename' i18n:translate='filemanager_no_filename'>No file name was provided.</span>
-                <span id='create_file' i18n:translate='filemanager_create_file'>Create File</span>
-                <span id='prompt_filename' i18n:translate='filemanager_prompt_filename'>Enter the name of the new file</span>
-                <span id='prompt_unsavedchanges' i18n:translate="filemanager_prompt_unsavedchanges">You have unsaved changes</span>
-                <span id='prompt_unsavedchanges_desc' i18n:translate="filemanager_prompt_unsavedchanges_desc">Would you like to save first?</span>
-                <span id='prompt_fileupload' i18n:translate='filemanager_prompt_fileupload'>Select a file to upload</span>
+
+                <span data-message-id='yes' i18n:translate='filemanager_yes'>Yes</span>
+                <span data-message-id='no' i18n:translate='filemanager_no'>No</span>
+                <span data-message-id='cancel' i18n:translate='filemanager_cancel'>Cancel</span>
+
+                <span data-message-id='error' i18n:translate='filemanager_error'>Error</span>
+
+                <span data-message-id='upload' i18n:translate='filemanager_upload'>Upload</span>
+                <span data-message-id='rename' i18n:translate='filemanager_rename'>Rename</span>
+                <span data-message-id='create_file' i18n:translate='filemanager_create_file'>Create File</span>
+                <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>Create Folder</span>
+
+                <span data-message-id='no_foldername' i18n:translate='filemanager_no_foldername'>No folder name was provided.</span>
+                <span data-message-id='invalid_foldername' i18n:translate='filemanager_invalid_foldername'>The folder name is invalid.</span>
+
+                <span data-message-id='no_filename' i18n:translate='filemanager_no_filename'>No file name was provided.</span>
+                <span data-message-id='invalid_filename' i18n:translate='filemanager_invalid_filename'>Invalid file name.</span>
+
+                <span data-message-id='new_filename' i18n:translate='filemanager_new_filename'>Enter a new name for the file</span>
+                <span data-message-id='confirmation_delete' i18n:translate='filemanager_confirmation_delete'>Are you sure you want to delete this item?</span>
+
+                <span data-message-id='prompt_filename' i18n:translate='filemanager_prompt_filename'>Enter the name of the new file</span>
+                <span data-message-id='prompt_foldername' i18n:translate='filemanager_prompt_foldername'>Enter the name of the new folder</span>
+                <span data-message-id='prompt_unsavedchanges' i18n:translate="filemanager_prompt_unsavedchanges">You have unsaved changes</span>
+                <span data-message-id='prompt_unsavedchanges_desc' i18n:translate="filemanager_prompt_unsavedchanges_desc">Would you like to save first?</span>
+                <span data-message-id='prompt_fileupload' i18n:translate='filemanager_prompt_fileupload'>Select a file to upload</span>
             </div>
 
         </div>

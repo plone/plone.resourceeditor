@@ -62,6 +62,16 @@ jQuery(function($) {
             return $('input[name="_authenticator"]').eq(0).val();
         }
 
+        /**
+         * Input validation for filenames
+         */
+        function isValidFileName(name) {
+            if(name == '')
+                return false;
+
+            return ! /[^\w\.\s\-]/gi.test(name);
+        }
+
 
         // Prompt
 
@@ -125,7 +135,9 @@ jQuery(function($) {
 
         // File tree
 
-
+        /**
+         * Get a node in the tree by path
+         */
         function getNodeByPath(path) {
             return fileTree.dynatree("getTree").getNodeByKey(path);
         }
@@ -316,39 +328,55 @@ jQuery(function($) {
                     if(button != localizedMessages.rename)
                         return;
 
-                    var deferred = function(){};
+                    var deferred = null;
 
-                    if(rname === '')
-                        return deferred;
-
-                    $.ajax({
-                        type: 'POST',
-                        url: FILE_CONNECTOR,
-                        data: {
-                            mode: 'rename',
-                            old: path,
-                            new: rname,
-                            _authenticator: getAuthenicator()
-                        },
-                        dataType: 'json',
-                        async: false,
-                        success: function(result){
-                            finalName = result['newName'];
-                            if(result['code'] == 0){
-                                // Update the file tree
-                                var newPath = result['newPath'];
-                                var newName = result['newName'];
-                                node = getNodeByPath(node.data.key);
-                                node.data.title = newName;
-                                node.data.key = newPath;
-                                node.render();
-                            } else {
-                                deferred = function(){
-                                    showPrompt({title: result['error']});
+                    if(rname == '') {
+                        deferred = function() {
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: localizedMessages.no_filename
+                            });
+                        };
+                    } else if(!isValidFileName(rname)) {
+                        deferred = function() {
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: localizedMessages.invalid_filename
+                            });
+                        };
+                    } else {
+                        $.ajax({
+                            type: 'POST',
+                            url: FILE_CONNECTOR,
+                            data: {
+                                mode: 'rename',
+                                old: path,
+                                new: rname,
+                                _authenticator: getAuthenicator()
+                            },
+                            dataType: 'json',
+                            async: false,
+                            success: function(result){
+                                finalName = result['newName'];
+                                if(result['code'] == 0){
+                                    // Update the file tree
+                                    var newPath = result['newPath'];
+                                    var newName = result['newName'];
+                                    node = getNodeByPath(node.data.key);
+                                    node.data.title = newName;
+                                    node.data.key = newPath;
+                                    node.render();
+                                } else {
+                                    deferred = function() {
+                                        showPrompt({
+                                            title: localizedMessages.error,
+                                            description: result['error']
+                                        });
+                                    };
                                 }
                             }
-                        }
-                    });
+                        });
+                    }
 
                     return deferred;
                 }
@@ -371,7 +399,7 @@ jQuery(function($) {
                     if(button != localizedMessages.yes)
                         return;
 
-                    var deferred = function(){};
+                    var deferred = null;
 
                     $.ajax({
                         type: 'POST',
@@ -383,16 +411,19 @@ jQuery(function($) {
                             _authenticator: getAuthenicator()
                         },
                         async: false,
-                        success: function(result){
+                        success: function(result) {
                             if(result['code'] == 0){
                                 removeTab(path);
                                 node.remove();
                                 isDeleted = true;
                             } else {
                                 isDeleted = false;
-                                deferred = function(){
-                                    showPrompt({title: result['error']});
-                                }
+                                deferred = function() {
+                                    showPrompt({
+                                        title: localizedMessages.error,
+                                        description: result['error']
+                                    });
+                                };
                             }
                         }
                     });
@@ -421,7 +452,21 @@ jQuery(function($) {
                         return;
 
                     var deferred = null;
-                    if(fname != ''){
+                    if(fname == '') {
+                        deferred = function() {
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: localizedMessages.no_filename
+                            });
+                        };
+                    } else if(!isValidFileName(fname)) {
+                        deferred = function() {
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: localizedMessages.invalid_filename
+                            });
+                        };
+                    } else {
                         filename = fname;
                         $.ajax({
                             url: FILE_CONNECTOR,
@@ -440,14 +485,15 @@ jQuery(function($) {
                                         key: result['parent'] + result['name']
                                     });
                                 } else {
-                                    deferred = function(){
-                                        showPrompt({title:result['error']});
-                                    }
+                                    deferred = function() {
+                                        showPrompt({
+                                            title: localizedMessages.error,
+                                            description:result['error']
+                                        });
+                                    };
                                 }
                             }
                         });
-                    } else {
-                        deferred = function(){ showPrompt({title: localizedMessages.no_filename}); }
                     }
                     return deferred;
                 }
@@ -472,7 +518,22 @@ jQuery(function($) {
                         return;
 
                     var deferred = null;
-                    if(fname != ''){
+
+                    if(fname == '') {
+                        deferred = function() {
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: localizedMessages.no_foldername
+                            });
+                        };
+                    } else if(!isValidFileName(fname)) {
+                        deferred = function() {
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: localizedMessages.invalid_foldername
+                            });
+                        };
+                    } else {
                         foldername = fname;
                         $.ajax({
                             url: FILE_CONNECTOR,
@@ -493,13 +554,14 @@ jQuery(function($) {
                                     });
                                 } else {
                                     deferred = function() {
-                                        showPrompt({title:result['error']});
-                                    }
+                                        showPrompt({
+                                            title: localizedMessages.error,
+                                            description: result['error']
+                                        });
+                                    };
                                 }
                             }
                         })
-                    } else {
-                        deferred = function(){ showPrompt({title: localizedMessages.no_foldername});}
                     }
                     return deferred
                 }
@@ -551,7 +613,10 @@ jQuery(function($) {
                                     isFolder: false
                                 });
                             } else {
-                                showPrompt({title: data['error']});
+                                showPrompt({
+                                    title: localizedMessages.error,
+                                    description: data['error']
+                                });
                             }
                         },
                         forceSync: true
@@ -730,7 +795,10 @@ jQuery(function($) {
                             sourceNode.data.key = result['newPath'];
                             sourceNode.render();
                         } else {
-                            showPrompt({title: result['error']});
+                            showPrompt({
+                                title: localizedMessages.error,
+                                description: result['error']
+                            });
                         }
                     }
                 });
