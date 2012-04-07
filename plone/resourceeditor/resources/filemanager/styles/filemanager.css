@@ -364,7 +364,7 @@ button.ON {
 
 #fileeditor #fileselector li{
 	cursor: pointer;
-	margin: 3px 3px 0 3px;
+	margin: 3px 1px 0 1px;
 	padding: 2px 7px;
 	float:left;
     background-color: #f1f1f1;

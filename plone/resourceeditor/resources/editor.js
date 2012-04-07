@@ -1,6 +1,6 @@
 // Editor abstraction
 
-var SourceEditor = function(element, mode, data, readonly, onchange) {
+var SourceEditor = function(element, mode, data, readonly, onchange, gutter) {
     this.useAce = ! $.browser.msie;
 
     this.element = '#' + element;
@@ -14,7 +14,7 @@ var SourceEditor = function(element, mode, data, readonly, onchange) {
         this.ace.getSession().setUseSoftTabs(true);
         this.ace.getSession().setUseWrapMode(false);
         this.ace.getSession().setMode(mode);
-        this.ace.renderer.setShowGutter(false);
+        this.ace.renderer.setShowGutter(gutter || false);
         this.ace.setShowPrintMargin(false);
         this.ace.setReadOnly(readonly);
 

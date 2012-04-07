@@ -125,11 +125,16 @@ jQuery(function($) {
 
         // File tree
 
+
+        function getNodeByPath(path) {
+            return fileTree.dynatree("getTree").getNodeByKey(path);
+        }
+
         /**
          * Get the currently selected folder in the file tree
          */
         function getCurrentFolder() {
-            return fileTree.dynatree("getTree").getNodeByKey(currentFolder);
+            return getNodeByPath(currentFolder);
         }
 
         /**
@@ -168,6 +173,26 @@ jQuery(function($) {
             }
         }
 
+        /**
+         * Close the tab for the given path
+         */
+        function removeTab(path){
+            var tabElement = $("#fileselector li[rel='" + path + "']");
+            fileManager.trigger('resourceeditor.closed', path);
+            if(tabElement.hasClass('selected') && tabElement.siblings("li").length > 0){
+                var other = tabElement.prev("li");
+                if(other.length == 0) {
+                    other = tabElement.siblings("li").eq(0);
+                }
+                other.addClass('selected');
+                $("#editors li[rel='" + other.attr('rel') + "']").addClass('selected');
+                fileManager.trigger('resourceeditor.selected', other.attr('rel'));
+            }
+            $("#editors li[rel='" + path + "']").remove();
+            tabElement.remove();
+            setSaveState();
+        }
+
         // File operations
 
         /**
@@ -201,18 +226,7 @@ jQuery(function($) {
                 // clicking the close button
                 close.click(function(){
                     var tabElement = $(this).parent();
-
-                    function removeTab(){
-                        fileManager.trigger('resourceeditor.closed', path);
-                        if(tabElement.hasClass('selected') && tabElement.siblings("li").length > 0){
-                            var other = tabElement.siblings("li").eq(0);
-                            other.addClass('selected');
-                            $("#editors li[rel='" + other.attr('rel') + "']").addClass('selected');
-                            fileManager.trigger('resourceeditor.selected', other.attr('rel'));
-                        }
-                        $("#editors li[rel='" + tabElement.attr('rel') + "']").remove();
-                        tabElement.remove();
-                    }
+                    var path = tabElement.attr('rel');
 
                     // Are there unsaved changes?
                     var dirty = $('#fileselector li.selected').hasClass('dirty');
@@ -224,17 +238,16 @@ jQuery(function($) {
                             callback: function(button){
                                 if(button == localizedMessages.yes) {
                                     $("#save").trigger('click');
-                                    removeTab();
+                                    removeTab(path);
                                 } else if(button == localizedMessages.no) {
-                                    removeTab();
+                                    removeTab(path);
                                 }
                             }
                         });
                     } else {
-                        removeTab();
+                        removeTab(path);
                     }
 
-                    setSaveState();
                     return false;
                 })
 
@@ -269,7 +282,7 @@ jQuery(function($) {
                                 setSaveState();
                             }
 
-                            var editor = new SourceEditor(editorId, mode, data.contents, false, markDirty)
+                            var editor = new SourceEditor(editorId, mode, data.contents, false, markDirty, true)
                             editors[path] = editor;
 
                             fileManager.trigger('resourceeditor.loaded', path);
@@ -325,13 +338,10 @@ jQuery(function($) {
                                 // Update the file tree
                                 var newPath = result['newPath'];
                                 var newName = result['newName'];
-                                node = fileTree.dynatree("getTree").getNodeByKey(node.data.key);
+                                node = getNodeByPath(node.data.key);
                                 node.data.title = newName;
                                 node.data.key = newPath;
                                 node.render();
-                                deferred = function(){
-                                    showPrompt({title: localizedMessages.successful_rename});
-                                }
                             } else {
                                 deferred = function(){
                                     showPrompt({title: result['error']});
@@ -375,6 +385,7 @@ jQuery(function($) {
                         async: false,
                         success: function(result){
                             if(result['code'] == 0){
+                                removeTab(path);
                                 node.remove();
                                 isDeleted = true;
                             } else {
@@ -426,7 +437,7 @@ jQuery(function($) {
                                 if(result['code'] == 0){
                                     node.addChild({
                                         title: result['name'],
-                                        key: result['parent'] + '/' + result['name']
+                                        key: result['parent'] + result['name']
                                     });
                                 } else {
                                     deferred = function(){
@@ -477,7 +488,7 @@ jQuery(function($) {
                                 if(result['code'] == 0){
                                     node.addChild({
                                         title: result['name'],
-                                        key: result['parent'] + '/' + result['name'],
+                                        key: result['parent'] + result['name'],
                                         isFolder: true
                                     });
                                 } else {
@@ -566,7 +577,7 @@ jQuery(function($) {
                 var node = $.ui.dynatree.getNode(el);
                 switch(action) {
                     case "rename":
-                        var newName = renameItem(node);
+                        renameItem(node);
                         break;
                     case "delete":
                         deleteItem(node);
@@ -617,6 +628,25 @@ jQuery(function($) {
             }
         };
 
+        // Adjust layout.
+        resizeEditor();
+        $(window).resize(resizeEditor);
+
+        // Set up key bindings for the editor
+        var canon = require('pilot/canon');
+        canon.addCommand({
+            name: 'saveEditor',
+            bindKey: {
+                mac: 'Command-S',
+                win: 'Ctrl-S',
+                sender: 'editor'
+            },
+            exec: function(env, args, request) {
+                var path = $("#fileselector li.selected").attr('rel');
+                saveFile(path);
+            }
+        });
+
         // Set up overlay support
         prompt.overlay({
             mask: {
@@ -628,10 +658,6 @@ jQuery(function($) {
             fixed : false,
             closeOnClick: false
         });
-
-        // Adjust layout.
-        resizeEditor();
-        $(window).resize(resizeEditor);
 
         // Provides support for adjustible columns.
         $('#splitter').splitter({
@@ -726,58 +752,6 @@ jQuery(function($) {
                 } else {
                     openFile(path);
                 }
-            }
-        });
-
-        // Set up key bindings for the editor
-
-        var canon = require('pilot/canon');
-        canon.addCommand({
-            name: 'saveEditor',
-            bindKey: {
-                mac: 'Command-S',
-                win: 'Ctrl-S',
-                sender: 'editor'
-            },
-            exec: function(env, args, request) {
-                var path = $("#fileselector li.selected").attr('rel');
-                saveFile(path);
-            }
-        });
-
-        canon.addCommand({
-            name: 'newFile',
-            bindKey: {
-                mac: 'Command-N',
-                win: 'Ctrl-N',
-                sender: 'editor'
-            },
-            exec: function(env, args, request) {
-                addNewFile(getCurrentFolder());
-            }
-        });
-
-        canon.addCommand({
-            name: 'newFolder',
-            bindKey: {
-                mac: 'Command-Shift-N',
-                win: 'Ctrl+Shift+N',
-                sender: 'editor'
-            },
-            exec: function(env, args, request) {
-                addNewFolder(getCurrentFolder());
-            }
-        });
-
-        canon.addCommand({
-            name: 'closeTab',
-            bindKey: {
-                mac: 'Command-W',
-                win: 'Ctrl+W',
-                sender: 'editor'
-            },
-            exec: function(env, args, request) {
-                $('#fileselector li.selected a.closebtn').trigger('click');
             }
         });
 

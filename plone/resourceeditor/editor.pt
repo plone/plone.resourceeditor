@@ -94,8 +94,7 @@
                 <button id="save" name="save" type="button" disabled="disabled" i18n:translate="filemanager_save">Save</button>
                 <button id="newfolder" name="newfolder" type="button" i18n:translate="filemanager_new_folder">New folder</button>
                 <button id="addnew" name="addnew" type="button" i18n:translate="filemanager_new_file">New file</button>
-                <button id="upload" name="upload" type="button" value="Upload" class="allowMultiSubmit"
-                    i18n:translate="filemanager_upload">Upload</button>
+                <button id="upload" name="upload" type="button" value="Upload" class="allowMultiSubmit" i18n:translate="filemanager_upload">Upload</button>
             </form>
             <div id="splitter">
                 <div id="filetree">
