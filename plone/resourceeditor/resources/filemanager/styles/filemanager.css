@@ -122,11 +122,11 @@
 	margin: 50px auto;
 }
 
-button:hover{
+#filemanager button:hover{
 	cursor:pointer;
 }
 
-button span {
+#filemanager button span {
 	display: block;
 	margin: 0 2px;
 	padding-left: 20px;
@@ -344,7 +344,7 @@ button.ON {
 
 #fileeditor {
 	min-width: 100px;
-	overflow: auto;
+	overflow: visible;
 	/* no margin or border allowed */
 }
 
@@ -418,6 +418,10 @@ button.ON {
 
 #aceeditors div.info img{
 	max-width: 400px;
+}
+
+#aceeditors div.info .details {
+	margin-top: 20px;
 }
 
 #upload-container{
