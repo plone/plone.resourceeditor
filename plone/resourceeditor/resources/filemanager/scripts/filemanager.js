@@ -152,7 +152,7 @@ jQuery(function($) {
             // editorHeight = $(window).height() - $('#buttons').height() - 30 - _previewHeight;
             $('#splitter, #fileeditor, .vsplitbar').height(editorHeight);
             fileTree.height(editorHeight-25);
-            $('#fileeditor ul#aceeditors li pre').height(editorHeight-32);
+            $('#fileeditor #editors li pre').height(editorHeight-32);
         }
 
         /**
@@ -177,7 +177,7 @@ jQuery(function($) {
             var relselector = 'li[rel="' + path + '"]';
 
             // Unselect current tab
-            $("#fileselector li.selected, #aceeditors li.selected").removeClass('selected');
+            $("#fileselector li.selected, #editors li.selected").removeClass('selected');
 
             // Do we have this file already? If not ...
             if($('#fileselector ' + relselector).size() == 0) {
@@ -188,9 +188,9 @@ jQuery(function($) {
 
                 // Switch to the relevant tab when clicked
                 tab.click(function(){
-                    $("#fileselector li.selected,#aceeditors li.selected").removeClass('selected');
+                    $("#fileselector li.selected,#editors li.selected").removeClass('selected');
                     $(this).addClass('selected');
-                    $("#aceeditors li[rel='" + $(this).attr('rel') + "']").addClass('selected');
+                    $("#editors li[rel='" + $(this).attr('rel') + "']").addClass('selected');
                     setSaveState();
                     fileManager.trigger('resourceeditor.selected', path);
 
@@ -207,10 +207,10 @@ jQuery(function($) {
                         if(tabElement.hasClass('selected') && tabElement.siblings("li").length > 0){
                             var other = tabElement.siblings("li").eq(0);
                             other.addClass('selected');
-                            $("#aceeditors li[rel='" + other.attr('rel') + "']").addClass('selected');
+                            $("#editors li[rel='" + other.attr('rel') + "']").addClass('selected');
                             fileManager.trigger('resourceeditor.selected', other.attr('rel'));
                         }
-                        $("#aceeditors li[rel='" + tabElement.attr('rel') + "']").remove();
+                        $("#editors li[rel='" + tabElement.attr('rel') + "']").remove();
                         tabElement.remove();
                     }
 
@@ -257,7 +257,7 @@ jQuery(function($) {
                             var editorArea = $('<pre id="' + editorId + '" name="' + path + '">' + data.contents + '</pre>');
                             editorArea.height(editorHeight - 32);
                             editorListItem.append(editorArea);
-                            $("#aceeditors").append(editorListItem);
+                            $("#editors").append(editorListItem);
 
                             var mode = defaultMode;
                             if (extension in extensionModes) {
@@ -275,14 +275,14 @@ jQuery(function($) {
                             fileManager.trigger('resourceeditor.loaded', path);
                         } else{
                             editorListItem.append(data.info);
-                            $("#aceeditors").append(editorListItem);
+                            $("#editors").append(editorListItem);
                         }
                     }
                 });
             }
 
             // Activate the given tab and editor
-            $("#fileselector " + relselector + ", #aceeditors " + relselector).addClass('selected');
+            $("#fileselector " + relselector + ", #editors " + relselector).addClass('selected');
             fileManager.trigger('resourceeditor.selected', path);
         }
 
@@ -447,7 +447,7 @@ jQuery(function($) {
          * Add a new folder, under the currently selected folder prompting for folder name
          */
         function addNewFolder(node){
-            var foldername =  localizedMessages.default_foldername;
+            var foldername = '';
             var path = node.data.key;
 
             showPrompt({
@@ -571,6 +571,15 @@ jQuery(function($) {
                     case "delete":
                         deleteItem(node);
                         break;
+                    case "newfolder":
+                        addNewFolder(getFolder(node));
+                        break;
+                    case "addnew":
+                        addNewFile(getFolder(node));
+                        break;
+                    case "upload":
+                        uploadFile(getFolder(node));
+                        break;
                     default:
                         break;
                 }
@@ -623,16 +632,6 @@ jQuery(function($) {
         // Adjust layout.
         resizeEditor();
         $(window).resize(resizeEditor);
-
-        // Populate localised messages
-        $('#upload').append(localizedMessages.upload);
-        $('#addnew').append(localizedMessages.add_new);
-        $('#save').append(localizedMessages.savemsg);
-        $('#saveall').append(localizedMessages.saveallmsg);
-        $('#newfolder').append(localizedMessages.new_folder);
-        $('#itemOptions a[href$="#download"]').append(localizedMessages.download);
-        $('#itemOptions a[href$="#rename"]').append(localizedMessages.rename);
-        $('#itemOptions a[href$="#delete"]').append(localizedMessages.del);
 
         // Provides support for adjustible columns.
         $('#splitter').splitter({

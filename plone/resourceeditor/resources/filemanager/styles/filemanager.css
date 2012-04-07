@@ -250,7 +250,7 @@ div.clip {
 }
 
 .contextMenu {
-	background-color: #E2EAF3;
+	background-color: white;
 }
 
 .contextMenu li.hover a {
@@ -261,18 +261,21 @@ div.clip {
 	font-size: 11px;
 }
 
+.contextMenu .separator a {
+	border-top: solid #ccc 1px;
+}
+
 /* these apply to the contextual menus as well as the buttons */
 /*button {outline: none;}*/
 #select span, .contextMenu li.select a { background-image: url(../images/accept.png); }
 #download span, .contextMenu li.download a { background-image: url(../images/disk.png); }
 #rename span, .contextMenu li.rename a { background-image: url(../images/pencil.png); }
 #delete span, .contextMenu li.delete a { background-image: url(../images/bin_closed.png); }
-#upload span { background-image: url(../images/add.png); }
+#upload span, .contextMenu li.upload a { background-image: url(../images/add.png); }
 #upload span.loading { background-image: url(../images/ajax-loader.gif);color:#555555;font-size:0.9em; }
-#parentfolder span { background-image: url(../images/parentfolder.png); }
-#newfolder span { background-image: url(../images/folder_add.png); }
+#newfolder span, .contextMenu li.newfolder a  { background-image: url(../images/folder_add.png); }
 #save span { background-image: url(../images/pencil.png); }
-#addnew span { background-image: url(../images/addnew.png); }
+#addnew span, .contextMenu li.addnew a  { background-image: url(../images/addnew.png); }
 
 /* div.jqi button { background-image: url(../images/circular/yes.png); } */
 
@@ -348,18 +351,18 @@ button.ON {
 	/* no margin or border allowed */
 }
 
-#fileeditor ul#fileselector{
+#fileeditor #fileselector{
 	height: 26px;
 	background-color: #DDDDDD;
 }
 
-#fileeditor ul#fileselector, #fileeditor ul#fileselector li,
-#fileeditor ul#aceeditors, #fileeditor ul#aceeditors li{
+#fileeditor #fileselector, #fileeditor #fileselector li,
+#fileeditor #editors, #fileeditor #editors li{
     list-style: none;
     list-style-type: none;
 }
 
-#fileeditor ul#fileselector li{
+#fileeditor #fileselector li{
 	cursor: pointer;
 	margin: 3px 3px 0 3px;
 	padding: 2px 7px;
@@ -373,37 +376,37 @@ button.ON {
     -moz-border-radius-topright: 5px 5px;
 }
 
-#fileeditor ul#fileselector li.dirty{
+#fileeditor #fileselector li.dirty{
 	color: #D57A46;
 }
 
-#fileeditor ul#fileselector li.selected{
+#fileeditor #fileselector li.selected{
 	border: 1px solid #427597;
 	border-bottom: none;
 	background-color: white;
 }
 
-#fileeditor ul#aceeditors li{
+#fileeditor #editors li{
 	display:none;
 }
 
-#fileeditor ul#aceeditors li.selected{
+#fileeditor #editors li.selected{
 	display: block;
 }
 
-#fileeditor ul#fileselector{
+#fileeditor #fileselector{
     margin:0;
     padding:0;
 }
 
-#fileeditor ul#aceeditors{
+#fileeditor #editors{
 	border-top: 3px solid #427597;
     width:100%;
     height:95%;
     clear:both;
 }
 
-#fileeditor ul#aceeditors li pre {
+#fileeditor #editors li pre {
     margin: 0;
     padding: 0;
     border: none;
@@ -412,23 +415,16 @@ button.ON {
     min-width:400px;
 }
 
-#aceeditors div.info{
+#editors div.info{
 	padding: 10px;
 }
 
-#aceeditors div.info img{
+#editors div.info img{
 	max-width: 400px;
 }
 
-#aceeditors div.info .details {
+#editors div.info .details {
 	margin-top: 20px;
-}
-
-#upload-container{
-	padding-left:10px;
-	border-left: 1px solid #ddd;
-	margin-left:5px;
-	display:inline;
 }
 
 #pb_prompt {
@@ -459,6 +455,10 @@ button.ON {
 #pb_prompt .pb-ajax .formControls{
 	margin:0;
 	padding: 5px 5px 5px 0;
+}
+
+#pb_prompt .pb-ajax .formControls input{
+	margin-right: 5px;
 }
 
 ul.dynatree-container{
