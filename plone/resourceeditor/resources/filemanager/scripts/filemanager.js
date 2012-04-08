@@ -188,7 +188,7 @@ jQuery(function($) {
         /**
          * Close the tab for the given path
          */
-        function removeTab(path){
+        function removeTab(path) {
             var tabElement = $("#fileselector li[rel='" + path + "']");
             fileManager.trigger('resourceeditor.closed', path);
             if(tabElement.hasClass('selected') && tabElement.siblings("li").length > 0){
@@ -203,6 +203,22 @@ jQuery(function($) {
             $("#editors li[rel='" + path + "']").remove();
             tabElement.remove();
             setSaveState();
+        }
+
+        /**
+         * Update references for any open tabs when path is moved/renamed to
+         * newPath
+         */
+        function updateOpenTab(path, newPath) {
+            $("#fileselector li[rel='" + path + "'] label").text(newPath);
+            $("#fileselector li[rel='" + path + "']").attr('rel', newPath);
+            $("#editors li[rel='" + path + "']").attr('rel', newPath);
+
+            // Update the editors list
+            if(path in editors) {
+                editors[newPath] = editors[path];
+                delete editors[path];
+            }
         }
 
         // File operations
@@ -220,7 +236,7 @@ jQuery(function($) {
             if($('#fileselector ' + relselector).size() == 0) {
 
                 // Create elements for the tab and close button
-                var tab = $('<li class="selected" rel="' + path + '">' + path + '</li>');
+                var tab = $('<li class="selected" rel="' + path + '"><label>' + path + '</label></li>');
                 var close = $('<a href="#close" class="closebtn"> x </a>');
 
                 // Switch to the relevant tab when clicked
@@ -360,12 +376,17 @@ jQuery(function($) {
                                 finalName = result['newName'];
                                 if(result['code'] == 0){
                                     // Update the file tree
-                                    var newPath = result['newPath'];
+                                    var newParent = result['newParent'];
                                     var newName = result['newName'];
-                                    node = getNodeByPath(node.data.key);
+
+                                    var newPath = newParent + '/' + newName;
+
                                     node.data.title = newName;
                                     node.data.key = newPath;
                                     node.render();
+
+                                    updateOpenTab(path, newPath);
+
                                 } else {
                                     deferred = function() {
                                         showPrompt({
@@ -770,7 +791,11 @@ jQuery(function($) {
               onDragStop: function(node) {
               },
               onDragEnter: function(node, sourceNode) {
-                return ["before", "after"];
+                if(node.data.isFolder) {
+                    return ["over"];
+                } else {
+                    return ["before", "after"];
+                }
               },
               onDragLeave: function(node, sourceNode) {
               },
@@ -792,8 +817,12 @@ jQuery(function($) {
                     async: false,
                     success: function(result){
                         if(result['code'] == 0){
-                            sourceNode.data.key = result['newPath'];
+                            var path = sourceNode.data.key;
+                            var newPath = result['newPath'];
+
+                            sourceNode.data.key = newPath;
                             sourceNode.render();
+                            updateOpenTab(path, newPath);
                         } else {
                             showPrompt({
                                 title: localizedMessages.error,

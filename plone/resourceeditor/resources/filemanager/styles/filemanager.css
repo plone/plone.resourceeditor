@@ -386,6 +386,10 @@ button.ON {
 	background-color: white;
 }
 
+#fileeditor #fileselector li label {
+	font-weight: normal;
+}
+
 #fileeditor #editors li{
 	display:none;
 }

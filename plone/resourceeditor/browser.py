@@ -389,9 +389,9 @@ var BASE_URL = '%s';
                 parent.rename(oldName, newName)
 
         return {
-            "oldPath": oldPath,
+            "oldParent": oldPath,
             "oldName": oldName,
-            "newPath": newPath,
+            "newParent": newPath,
             "newName": newName,
             'error': error,
             'code': code,
@@ -440,10 +440,14 @@ var BASE_URL = '%s';
         else:
             target[filename] = obj
 
+        newCanonicalPath = "%s/%s" % (newParentPath, filename)
+        if not newCanonicalPath.startswith('/'):
+            newCanonicalPath = "/" + newCanonicalPath
+
         return {
             'code': code,
             'error': error,
-            'newPath': '/%s/%s' % (newParentPath, filename)
+            'newPath': newCanonicalPath,
         }
 
     def download(self, path):
