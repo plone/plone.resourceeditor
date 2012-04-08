@@ -72,7 +72,7 @@
         <div id="pb_prompt" class="overlay overlay-ajax">
             <div class="close"><span>Close</span></div>
             <div class="pb-ajax">
-                <h1 class="documentFirstHeading"></h1>
+                <h2></h2>
                 <div class="documentDescription"></div>
                 <div class="input">
                 </div>
@@ -131,8 +131,8 @@
 
                 <span data-message-id='upload' i18n:translate='filemanager_upload'>Upload</span>
                 <span data-message-id='rename' i18n:translate='filemanager_rename'>Rename</span>
-                <span data-message-id='create_file' i18n:translate='filemanager_create_file'>Create File</span>
-                <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>Create Folder</span>
+                <span data-message-id='create_file' i18n:translate='filemanager_create_file'>Create file</span>
+                <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>Create folder</span>
 
                 <span data-message-id='no_foldername' i18n:translate='filemanager_no_foldername'>No folder name was provided.</span>
                 <span data-message-id='invalid_foldername' i18n:translate='filemanager_invalid_foldername'>The folder name is invalid.</span>
