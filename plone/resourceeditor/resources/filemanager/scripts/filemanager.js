@@ -97,7 +97,7 @@ jQuery(function($) {
             if(options.onBeforeLoad === undefined) options.onBeforeLoad = function(){};
 
             // Clear old values
-            $('h2,.documentDescription,.formControls', prompt).html('');
+            $('.documentFirstHeading,.documentDescription,.formControls', prompt).html('');
             $('.input', prompt).empty();
             if(options.showInput){
                 $('.input', prompt).append('<input type="text" name="input" />');
@@ -105,7 +105,7 @@ jQuery(function($) {
             }
 
             // Fill new values
-            $('h2', prompt).html(options.title);
+            $('.documentFirstHeading', prompt).html(options.title);
             $('.documentDescription', prompt).html(options.description);
             for(var i = 0; i < options.buttons.length; ++i){
                 var button = options.buttons[i];

@@ -435,10 +435,6 @@ button.ON {
 	width: auto;
 }
 
-#pb_prompt .pb-ajax{
-	padding:10px;
-}
-
 #pb_prompt .pb-ajax .documentDescription{
 	padding: 0 0 5px 0;
 	white-space: nowrap;
