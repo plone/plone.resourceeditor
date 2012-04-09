@@ -275,7 +275,8 @@ var BASE_URL = '%s';
         """Create a new directory on the server within the given path.
         """
 
-        parent = self.getObject(path)
+        parentPath = self.normalizePath(path)
+        parent = self.getObject(parentPath)
 
         code = 0
         error = ''
@@ -289,7 +290,7 @@ var BASE_URL = '%s';
             parent.makeDirectory(name)
 
         return {
-            'parent': path,
+            'parent': parentPath,
             'name': name,
             'error': error,
             'code': code,
@@ -335,6 +336,7 @@ var BASE_URL = '%s';
                 code = 1
 
         return {
+            "parent": parentPath,
             "path": path,
             "name": name,
             "error": error,
@@ -361,7 +363,7 @@ var BASE_URL = '%s';
             self.resourceDirectory.writeFile(newPath.encode('utf-8'), '')
 
         return {
-            "parent": path,
+            "parent": parentPath,
             "name": name,
             "error": error,
             "code": code,
@@ -514,6 +516,9 @@ var BASE_URL = '%s';
         return ' '  # Zope no likey empty responses
 
     def filetree(self):
+
+        foldersOnly = bool(self.request.get('foldersOnly', False))
+
         def getFolder(root, relpath=''):
             result = []
             for name in root.listDirectory():
@@ -525,9 +530,10 @@ var BASE_URL = '%s';
                         'isFolder': True
                     }
                     item['children'] = getFolder(root[name], path)
-                else:
+                    result.append(item)
+                elif not foldersOnly:
                     item = {'title': name, 'key': path}
-                result.append(item)
+                    result.append(item)
             return result
         return json.dumps([{
             'title': '/',

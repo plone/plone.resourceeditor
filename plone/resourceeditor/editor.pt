@@ -136,6 +136,8 @@
                 <span data-message-id='create_file' i18n:translate='filemanager_create_file'>Create file</span>
                 <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>Create folder</span>
 
+                <span data-message-id='location' i18n:translate='filemanager_location'>Location</span>
+
                 <span data-message-id='no_foldername' i18n:translate='filemanager_no_foldername'>No folder name was provided.</span>
                 <span data-message-id='invalid_foldername' i18n:translate='filemanager_invalid_foldername'>The folder name is invalid.</span>
 

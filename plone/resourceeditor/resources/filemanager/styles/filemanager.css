@@ -425,6 +425,7 @@ button.ON {
 
 #editors div.info img{
 	max-width: 400px;
+	max-height: 320px;
 }
 
 #editors div.info .details {
@@ -459,6 +460,16 @@ button.ON {
 
 #pb_prompt .pb-ajax .formControls input{
 	margin-right: 5px;
+}
+
+#prompt-filetree ul {
+	margin-left: 0;
+}
+
+.fileTreeLabel {
+	font-size: 120%;
+	margin-top: 10px;
+	display: block;
 }
 
 ul.dynatree-container{

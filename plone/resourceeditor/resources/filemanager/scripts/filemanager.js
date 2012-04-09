@@ -146,7 +146,7 @@ jQuery(function($) {
          * Get the currently selected folder in the file tree
          */
         function getCurrentFolder() {
-            return getNodeByPath(currentFolder);
+            return getNodeByPath(currentFolder) || getNodeByPath('/');
         }
 
         /**
@@ -219,6 +219,34 @@ jQuery(function($) {
                 editors[newPath] = editors[path];
                 delete editors[path];
             }
+        }
+
+        /**
+         * Add a tree to select folders to the given container node. Returns
+         * a Dynatree instance. Default the selection to the given path.
+         */
+        function setupFolderTree(parent, path) {
+            var promptFileTree = $("<div id='prompt-filetree'></div>");
+
+            $(parent).append("<label class='fileTreeLabel'>" + localizedMessages.location + "</label>");
+            $(parent).append(promptFileTree);
+
+            promptFileTree.dynatree({
+                activeVisible: true,
+                initAjax: {
+                  url: BASE_URL + '/@@plone.resourceeditor.filetree',
+                  data: {
+                    'foldersOnly': true
+                  }
+                },
+                onPostInit: function(reloading, error) {
+                    if(!error && path) {
+                        this.activateKey(path);
+                    }
+                }
+            });
+
+            return promptFileTree.dynatree("getTree");
         }
 
         // File operations
@@ -460,6 +488,14 @@ jQuery(function($) {
          */
         function addNewFile(node){
             var filename = '';
+            var showTree = false;
+            var tree = null;
+
+            if(node == null) {
+                showTree = true;
+                node = getCurrentFolder();
+            }
+
             var path = node.data.key;
 
             showPrompt({
@@ -468,9 +504,24 @@ jQuery(function($) {
                 buttons: [localizedMessages.create_file, localizedMessages.cancel],
                 inputValue: filename,
                 showInput: true,
+                onBeforeLoad: function() {
+                    if(showTree) {
+                        tree = setupFolderTree($(".input", prompt), path);
+                    }
+                },
                 callback: function(button, fname){
                     if(button != localizedMessages.create_file)
                         return;
+
+                    if(showTree) {
+                        // get the node in the tree in the overlay
+                        var selectedNode = tree.getActiveNode();
+                        if(selectedNode != null && getNodeByPath(path) != null) {
+                            // get the node in the main tree
+                            path = selectedNode.data.key;
+                            node = getNodeByPath(path);
+                        }
+                    }
 
                     var deferred = null;
                     if(fname == '') {
@@ -503,7 +554,7 @@ jQuery(function($) {
                                 if(result['code'] == 0){
                                     node.addChild({
                                         title: result['name'],
-                                        key: result['parent'] + result['name']
+                                        key: '/' + result['parent'] + '/' + result['name']
                                     });
                                 } else {
                                     deferred = function() {
@@ -526,6 +577,14 @@ jQuery(function($) {
          */
         function addNewFolder(node){
             var foldername = '';
+            var showTree = false;
+            var tree = null;
+
+            if(node == null) {
+                showTree = true;
+                node = getCurrentFolder();
+            }
+
             var path = node.data.key;
 
             showPrompt({
@@ -534,11 +593,26 @@ jQuery(function($) {
                 buttons: [localizedMessages.create_folder, localizedMessages.cancel],
                 inputValue: foldername,
                 showInput: true,
+                onBeforeLoad: function() {
+                    if(showTree) {
+                        tree = setupFolderTree($(".input", prompt), path);
+                    }
+                },
                 callback: function(button, fname){
                     if(button != localizedMessages.create_folder)
                         return;
 
                     var deferred = null;
+
+                    if(showTree) {
+                        // get the node in the tree in the overlay
+                        var selectedNode = tree.getActiveNode();
+                        if(selectedNode != null && getNodeByPath(path) != null) {
+                            // get the node in the main tree
+                            path = selectedNode.data.key;
+                            node = getNodeByPath(path);
+                        }
+                    }
 
                     if(fname == '') {
                         deferred = function() {
@@ -570,7 +644,7 @@ jQuery(function($) {
                                 if(result['code'] == 0){
                                     node.addChild({
                                         title: result['name'],
-                                        key: result['parent'] + result['name'],
+                                        key: '/' + result['parent'] + '/' + result['name'],
                                         isFolder: true
                                     });
                                 } else {
@@ -595,11 +669,15 @@ jQuery(function($) {
         function uploadFile(node){
             var form = null;
             var input = null;
-            var path = node.data.key;
+            var showTree = false;
+            var tree = null;
 
-            if(path[0] == '/'){
-                path = path.substring(1);
+            if(node == null) {
+                showTree = true;
+                node = getCurrentFolder();
             }
+
+            var path = node.data.key;
 
             showPrompt({
                 title: localizedMessages.upload,
@@ -613,10 +691,16 @@ jQuery(function($) {
                     form = $('<form method="post" action="' + FILE_CONNECTOR + '?mode=add"></form>');
                     form.append(input);
                     $('.input', prompt).append(form);
+
+                    if(showTree) {
+                        tree = setupFolderTree($(".input", prompt), path);
+                    }
+
                     form.ajaxForm({
                         target: '#uploadresponse',
                         beforeSubmit: function(arr, form, options) {
-
+                            // Update path in case it has changed
+                            options.data.currentpath = path;
                         },
                         data: {
                             currentpath: path,
@@ -627,11 +711,9 @@ jQuery(function($) {
                             var data = jQuery.parseJSON($('#uploadresponse').find('textarea').text());
 
                             if(data['code'] == 0){
-                                // XXX: Assumes we always add to current folder
-                                getCurrentFolder().addChild({
+                                node.addChild({
                                     title: data['name'],
-                                    key: data['name'],
-                                    isFolder: false
+                                    key: '/' + data['parent'] + '/' + data['name']
                                 });
                             } else {
                                 showPrompt({
@@ -647,6 +729,17 @@ jQuery(function($) {
                     if(button == localizedMessages.cancel) {
                         return true;
                     }
+
+                    if(showTree) {
+                        // get the node in the tree in the overlay
+                        var selectedNode = tree.getActiveNode();
+                        if(selectedNode != null && getNodeByPath(path) != null) {
+                            // get the node in the main tree
+                            path = selectedNode.data.key;
+                            node = getNodeByPath(path);
+                        }
+                    }
+
                     form.trigger('submit');
                     return false;
                 }
@@ -756,17 +849,17 @@ jQuery(function($) {
         // Bind toolbar buttons
 
         $('#addnew').click(function(){
-            addNewFile(getCurrentFolder());
+            addNewFile(null);
             return false;
         });
 
         $('#newfolder').click(function() {
-            addNewFolder(getCurrentFolder());
+            addNewFolder(null);
             return false;
         });
 
         $("#upload").click(function(){
-            uploadFile(getCurrentFolder());
+            uploadFile(null);
             return false;
         });
 
@@ -844,9 +937,8 @@ jQuery(function($) {
             },
             onActivate: function(node) {
                 var path = node.data.key;
-                if(node.data.isFolder) {
-                    currentFolder = path;
-                } else {
+                currentFolder = getFolder(node).data.key;
+                if(!node.data.isFolder) {
                     openFile(path);
                 }
             }
