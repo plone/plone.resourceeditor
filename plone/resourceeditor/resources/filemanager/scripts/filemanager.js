@@ -100,8 +100,22 @@ jQuery(function($) {
             $('.documentFirstHeading,.documentDescription,.formControls', prompt).html('');
             $('.input', prompt).empty();
             if(options.showInput){
-                $('.input', prompt).append('<input type="text" name="input" />');
-                $('input[type="text"]', prompt).val(options.inputValue);
+                var newInput = $('<input type="text" name="input" />');
+                newInput.val(options.inputValue);
+                newInput.keyup(function(event) {
+                    if(event.keyCode == 13) {
+
+                        event.stopPropagation();
+                        event.preventDefault();
+
+                        $('input[type="submit"]', prompt).click();
+
+                        return false;
+                    }
+
+                });
+
+                $('.input', prompt).append(newInput);
             }
 
             // Fill new values
@@ -157,6 +171,22 @@ jQuery(function($) {
                 node = node.parent;
             }
             return node;
+        }
+
+        /**
+         * Activate the given node
+         */
+        function activateNode(path){
+            fileTree.dynatree("getTree").activateKey(path);
+        }
+
+        /**
+         * Generate a key from a parent folder name and a file/folder name.
+         */
+        function joinKeyPath(parent, name) {
+            var path = [parent || "", name || ""].join('/');
+            if(path[0] != '/') path = '/' + path;
+            return path;
         }
 
         // Editor
@@ -552,10 +582,13 @@ jQuery(function($) {
                             type: 'POST',
                             success: function(result){
                                 if(result['code'] == 0){
+                                    var key = joinKeyPath(result['parent'], result['name']);
                                     node.addChild({
                                         title: result['name'],
-                                        key: '/' + result['parent'] + '/' + result['name']
+                                        key: key
                                     });
+                                    openFile(key);
+                                    activateNode(key);
                                 } else {
                                     deferred = function() {
                                         showPrompt({
@@ -644,7 +677,7 @@ jQuery(function($) {
                                 if(result['code'] == 0){
                                     node.addChild({
                                         title: result['name'],
-                                        key: '/' + result['parent'] + '/' + result['name'],
+                                        key: joinKeyPath(result['parent'], result['name']),
                                         isFolder: true
                                     });
                                 } else {
@@ -711,10 +744,13 @@ jQuery(function($) {
                             var data = jQuery.parseJSON($('#uploadresponse').find('textarea').text());
 
                             if(data['code'] == 0){
+                                var key = joinKeyPath(data['parent'], data['name']);
                                 node.addChild({
                                     title: data['name'],
-                                    key: '/' + data['parent'] + '/' + data['name']
+                                    key: key
                                 });
+                                openFile(key);
+                                activateNode(key);
                             } else {
                                 showPrompt({
                                     title: localizedMessages.error,
@@ -934,8 +970,8 @@ jQuery(function($) {
                 if( $(".contextMenu:visible").length > 0 ){
                   $(".contextMenu").hide();
                 }
-            },
-            onActivate: function(node) {
+
+                // Open file
                 var path = node.data.key;
                 currentFolder = getFolder(node).data.key;
                 if(!node.data.isFolder) {
