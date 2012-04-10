@@ -871,7 +871,11 @@ jQuery(function($) {
             },
             // top : 0,
             fixed : false,
-            closeOnClick: false
+            closeOnClick: false,
+            onLoad: function(event) {
+                $(".input input:first-child", prompt).focus();
+                return true;
+            }
         });
 
         // Provides support for adjustible columns.
