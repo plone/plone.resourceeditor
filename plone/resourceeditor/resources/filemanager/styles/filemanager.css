@@ -64,7 +64,7 @@
 	padding-left: 0;
 }
 
-#content #filetree li{
+#content .dynatree-container li{
 	margin-bottom:0;
 	line-height:13px;
 }
@@ -267,15 +267,13 @@ div.clip {
 
 /* these apply to the contextual menus as well as the buttons */
 /*button {outline: none;}*/
-#select span, .contextMenu li.select a { background-image: url(../images/accept.png); }
-#download span, .contextMenu li.download a { background-image: url(../images/disk.png); }
-#rename span, .contextMenu li.rename a { background-image: url(../images/pencil.png); }
-#delete span, .contextMenu li.delete a { background-image: url(../images/bin_closed.png); }
-#upload span, .contextMenu li.upload a { background-image: url(../images/add.png); }
-#upload span.loading { background-image: url(../images/ajax-loader.gif);color:#555555;font-size:0.9em; }
-#newfolder span, .contextMenu li.newfolder a  { background-image: url(../images/folder_add.png); }
-#save span { background-image: url(../images/pencil.png); }
-#addnew span, .contextMenu li.addnew a  { background-image: url(../images/addnew.png); }
+.contextMenu li.select a { background-image: url(../images/accept.png); }
+.contextMenu li.download a { background-image: url(../images/disk.png); }
+.contextMenu li.rename a { background-image: url(../images/pencil.png); }
+.contextMenu li.delete a { background-image: url(../images/bin_closed.png); }
+.contextMenu li.upload a { background-image: url(../images/add.png); }
+.contextMenu li.newfolder a  { background-image: url(../images/folder_add.png); }
+
 
 /* div.jqi button { background-image: url(../images/circular/yes.png); } */
 

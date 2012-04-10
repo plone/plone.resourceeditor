@@ -879,9 +879,6 @@ jQuery(function($) {
             sizeLeft: 200
         });
 
-        // cosmetic tweak for buttons
-        $('button').wrapInner('<span></span>');
-
         // Bind toolbar buttons
 
         $('#addnew').click(function(){
