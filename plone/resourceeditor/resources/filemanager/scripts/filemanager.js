@@ -24,10 +24,15 @@ jQuery(function($) {
         var fileTree = $("#filetree");
         var prompt = $("#pb_prompt");
 
+        function getEditorHeight() {
+            return $(window).height() - $("#buttons").height() - fileManager.offset().top - 30;
+        }
+
         // Settings
         // var editorHeight = 450;
         // XXX: Previous code to dynamically resize
-        var editorHeight = $(window).height() - $('#buttons').height() - 160;
+        // var editorHeight = $(window).height() - $('#buttons').height() - 160;
+        var editorHeight = getEditorHeight();
 
         var editors = {};
         var nextEditorId = 0;
@@ -196,7 +201,7 @@ jQuery(function($) {
          * Set the height of the editor and file tree
          */
         function resizeEditor(){
-            editorHeight = $(window).height() - $('#buttons').height() - 160;
+            editorHeight = getEditorHeight();
             $('#splitter, #fileeditor, .vsplitbar').height(editorHeight);
             fileTree.height(editorHeight-25);
             $('#fileeditor #editors li pre').height(editorHeight-32);
