@@ -88,16 +88,19 @@
         <input tal:replace="structure authenticator" />
 
         <div id="filemanager">
-            <form id="buttons">
+            <div id="buttons">
                 <input tal:replace="structure authenticator" />
-                <h1></h1>
                 <div id="uploadresponse"></div>
                 <input id="mode" name="mode" type="hidden" value="add" />
-                <button id="save" name="save" type="button" disabled="disabled" i18n:translate="filemanager_save">Save</button>
                 <button id="newfolder" name="newfolder" type="button" i18n:translate="filemanager_new_folder">New folder</button>
                 <button id="addnew" name="addnew" type="button" i18n:translate="filemanager_new_file">New file</button>
-                <button id="upload" name="upload" type="button" value="Upload" class="allowMultiSubmit" i18n:translate="filemanager_upload">Upload</button>
-            </form>
+                <button id="upload" name="upload" type="button" value="Upload" class="allowMultiSubmit" i18n:translate="filemanager_upload">Upload file</button>
+                <metal:block define-slot="extraButtons" />
+                <div id="contextButtons">
+                    <button id="save" name="save" type="button" disabled="disabled" i18n:translate="filemanager_save">Save file</button>
+                    <metal:block define-slot="extraContextButtons" />
+                </div>
+            </div>
             <div id="splitter">
                 <div id="filetree">
                 </div>
@@ -131,10 +134,10 @@
 
                 <span data-message-id='error' i18n:translate='filemanager_error'>Error</span>
 
-                <span data-message-id='upload' i18n:translate='filemanager_upload'>Upload</span>
+                <span data-message-id='upload' i18n:translate='filemanager_upload'>Upload file</span>
                 <span data-message-id='rename' i18n:translate='filemanager_rename'>Rename</span>
-                <span data-message-id='create_file' i18n:translate='filemanager_create_file'>Create file</span>
-                <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>Create folder</span>
+                <span data-message-id='create_file' i18n:translate='filemanager_create_file'>New file</span>
+                <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>New folder</span>
 
                 <span data-message-id='location' i18n:translate='filemanager_location'>Location</span>
 

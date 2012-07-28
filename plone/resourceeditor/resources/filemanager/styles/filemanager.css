@@ -21,30 +21,26 @@
 }
 
 #buttons {
-	margin-top: 10px;
-	padding: 5px 5px 0 5px;
-	/*background-color: #E2EAF3;*/
+	margin: 10px 0;
+}
+
+#buttons form {
+	display: inline;
+}
+
+#filemanager button {
+	padding: 4px;
+	margin: 3px 6px 3px 0;
+}
+
+#contextButtons {
+	float: right;
 }
 
 #filemanager ul {
 	margin-left: 0 !important;
 }
 
-#buttons {
-	display: block;
-	text-align: right;
-	height: auto;
-	min-height:30px;
-	max-height: 80px;
-	overflow: hidden;
-}
-
-#buttons h1 {
-	display: block;
-	float: left;
-	text-align: left;
-	font-size: 0.8em;
-}
 
 #uploadresponse {
 	display: none;

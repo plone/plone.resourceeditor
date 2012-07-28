@@ -25,9 +25,9 @@ jQuery(function($) {
         var prompt = $("#pb_prompt");
 
         // Settings
-        var editorHeight = 450;
+        // var editorHeight = 450;
         // XXX: Previous code to dynamically resize
-        // var editorHeight = $(window).height() - $('#buttons').height() - 30;
+        var editorHeight = $(window).height() - $('#buttons').height() - 160;
 
         var editors = {};
         var nextEditorId = 0;
@@ -196,7 +196,7 @@ jQuery(function($) {
          * Set the height of the editor and file tree
          */
         function resizeEditor(){
-            // editorHeight = $(window).height() - $('#buttons').height() - 30 - _previewHeight;
+            editorHeight = $(window).height() - $('#buttons').height() - 160;
             $('#splitter, #fileeditor, .vsplitbar').height(editorHeight);
             fileTree.height(editorHeight-25);
             $('#fileeditor #editors li pre').height(editorHeight-32);
@@ -335,7 +335,7 @@ jQuery(function($) {
                     }
 
                     return false;
-                })
+                });
 
                 // Add the tab and close elements to the page
                 tab.append(close);
@@ -368,7 +368,7 @@ jQuery(function($) {
                                 setSaveState();
                             }
 
-                            var editor = new SourceEditor(editorId, mode, data.contents, false, markDirty, true)
+                            var editor = new SourceEditor(editorId, mode, data.contents, false, markDirty, true);
                             editors[path] = editor;
 
                             fileManager.trigger('resourceeditor.loaded', path);
@@ -689,9 +689,9 @@ jQuery(function($) {
                                     };
                                 }
                             }
-                        })
+                        });
                     }
-                    return deferred
+                    return deferred;
                 }
             });
         }
@@ -717,7 +717,7 @@ jQuery(function($) {
                 description: localizedMessages.prompt_fileupload,
                 buttons: [localizedMessages.upload, localizedMessages.cancel],
                 onBeforeLoad: function(){
-                    if($('#fileselector li.selected').size() == 0){
+                    if($('#fileselector li.selected').size() == 0) {
                         $('input[value="' + localizedMessages.upload_and_replace_current + '"]', prompt).remove();
                     }
                     input = $('<input id="newfile" name="newfile" type="file" />');
@@ -910,7 +910,7 @@ jQuery(function($) {
 
         $("#filetree").dynatree({
             initAjax: {
-              url: BASE_URL + '/@@plone.resourceeditor.filetree',
+              url: BASE_URL + '/@@plone.resourceeditor.filetree'
             },
             dnd: {
               autoExpandMS: 1000,
@@ -946,7 +946,7 @@ jQuery(function($) {
                     },
                     async: false,
                     success: function(result){
-                        if(result['code'] == 0){
+                        if(result['code'] == 0) {
                             var path = sourceNode.data.key;
                             var newPath = result['newPath'];
 
