@@ -1,6 +1,7 @@
 import urllib
 import os.path
 import json
+import string
 
 from zope.component import queryMultiAdapter
 from zope.publisher.browser import BrowserView
@@ -25,6 +26,12 @@ def authorize(context, request):
                                       name=u"authenticator")
     if authenticator is not None and not authenticator.verify():
         raise Unauthorized
+
+invalidFilenameChars = frozenset('\/:*?"<>|')
+
+
+def validateFilename(name):
+    return len([n for n in name if n in invalidFilenameChars]) == 0
 
 
 class FileManager(BrowserView):
@@ -281,13 +288,24 @@ var BASE_URL = '%s';
         code = 0
         error = ''
 
-        if name in parent:
+        if not validateFilename(name):
+            error = translate(_(u'filemanager_invalid_filename',
+                              default=u"Invalid file name."),
+                              context=self.request)
+            code = 1
+        elif name in parent:
             error = translate(_(u'filemanager_error_file_exists',
                               default=u"File already exists."),
                               context=self.request)
-            code = 1
+            code = 2
         else:
-            parent.makeDirectory(name)
+            try:
+                parent.makeDirectory(name)
+            except UnicodeDecodeError:
+                error = translate(_(u'filemanager_invalid_filename',
+                              default=u"Invalid file name."),
+                              context=self.request)
+                code = 1
 
         return {
             'parent': parentPath,
@@ -346,7 +364,6 @@ var BASE_URL = '%s';
     def addNew(self, path, name):
         """Add a new empty file in the given directory
         """
-
         error = ''
         code = 0
 
@@ -354,11 +371,17 @@ var BASE_URL = '%s';
         newPath = u"%s/%s" % (parentPath, name,)
 
         parent = self.getObject(parentPath)
-        if name in parent:
+
+        if not validateFilename(name):
+            error = translate(_(u'filemanager_invalid_filename',
+                              default=u"Invalid file name."),
+                              context=self.request)
+            code = 1
+        elif name in parent:
             error = translate(_(u'filemanager_error_file_exists',
                               default=u"File already exists."),
                               context=self.request)
-            code = 1
+            code = 2
         else:
             self.resourceDirectory.writeFile(newPath.encode('utf-8'), '')
 
