@@ -31,7 +31,7 @@ jQuery(function($) {
             var prompt = $("#pb_prompt");
 
             FileManager.getEditorHeight = function() {
-                return Math.max(375, Math.min(250, $(window).height() - $("#buttons").height() - fileManagerElement.offset().top - 30));
+                return Math.max(450, Math.min(250, $(window).height() - $("#buttons").height() - fileManagerElement.offset().top - 30));
             };
 
             // Settings
