@@ -202,13 +202,14 @@ jQuery(function($) {
 
 
             /**
-             * Set the height of the editor and file tree
+             * Set the height and width of the editor and file tree
              */
             FileManager.resizeEditor = function(){
                 editorHeight = FileManager.getEditorHeight();
                 $('#splitter, #fileeditor, .vsplitbar').height(editorHeight);
                 fileTree.height(editorHeight-25);
                 $('#fileeditor #editors li pre').height(editorHeight-32);
+                $("#fileeditor").width($("#splitter").width() - ($("#filetree").width() + $("#splitter .vsplitbar").width() + 2));
             };
 
             /**
