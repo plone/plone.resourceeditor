@@ -12,7 +12,9 @@
  */
 
 // Singleton giving access to operations in the file manager
-var FileManager = {};
+var FileManager = {
+    enabled: false
+};
 
 jQuery(function($) {
 
@@ -24,14 +26,13 @@ jQuery(function($) {
 
         // Elements we are controlling
         var fileManagerElement = $("#filemanager");
-        FileManager.enabled = false;
 
         if(fileManagerElement.length > 0) {
             var fileTree = $("#filetree");
             var prompt = $("#pb_prompt");
 
             FileManager.getEditorHeight = function() {
-                return Math.max(450, Math.min(250, $(window).height() - $("#buttons").height() - fileManagerElement.offset().top - 30));
+                return Math.max(250, $(window).height() - $("#buttons").height() - fileManagerElement.offset().top - (30 + 100));
             };
 
             // Settings
@@ -214,13 +215,17 @@ jQuery(function($) {
              * Enable or disable the Save button depending on whether the current
              * file is dirty or not
              */
-            FileManager.setSaveState = function(){
+            FileManager.setSaveState = function() {
                 var li = $("#fileselector li.selected");
                 if(li.hasClass('dirty')){
                     $("#save")[0].disabled = false;
                 }else{
                     $("#save")[0].disabled = true;
                 }
+            };
+
+            FileManager.getCurrentFilePath = function() {
+                return $("#fileselector li.selected").attr('rel');
             };
 
             /**
@@ -727,7 +732,7 @@ jQuery(function($) {
                     description: localizedMessages.prompt_fileupload,
                     buttons: [localizedMessages.upload, localizedMessages.cancel],
                     onBeforeLoad: function(){
-                        if($('#fileselector li.selected').size() === 0) {
+                        if($('#fileselector li.selected').length === 0) {
                             $('input[value="' + localizedMessages.upload_and_replace_current + '"]', prompt).remove();
                         }
                         input = $('<input id="newfile" name="newfile" type="file" />');
@@ -825,7 +830,7 @@ jQuery(function($) {
             /**
              * Save the current file
              */
-            function saveFile(path){
+            FileManager.saveFile = function(path){
                 var editor = FileManager.editors[path];
                 $.ajax({
                     url: BASE_URL + '/@@plone.resourceeditor.savefile',
@@ -840,7 +845,7 @@ jQuery(function($) {
                         fileManagerElement.trigger('resourceeditor.saved', path);
                     }
                 });
-            }
+            };
 
             /*
              * Initialization
@@ -867,8 +872,8 @@ jQuery(function($) {
                     sender: 'editor'
                 },
                 exec: function(env, args, request) {
-                    var path = $("#fileselector li.selected").attr('rel');
-                    saveFile(path);
+                    var path = FileManager.getCurrentFilePath();
+                    FileManager.saveFile(path);
                 }
             });
 
@@ -911,8 +916,8 @@ jQuery(function($) {
             });
 
             $("#save").click(function(){
-                var path = $("#fileselector li.selected").attr('rel');
-                saveFile(path);
+                var path = FileManager.getCurrentFilePath();
+                FileManager.saveFile(path);
                 return false;
             });
 
