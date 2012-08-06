@@ -981,6 +981,10 @@ jQuery(function($) {
                                 var path = sourceNode.data.key;
                                 var newPath = result['newPath'];
 
+                                // Trigger event before the node change so that event handlers
+                                // can access the old node
+                                fileManagerElement.trigger('resourceeditor.renamed', [path, newPath]);
+
                                 sourceNode.data.key = newPath;
                                 sourceNode.render();
                                 FileManager.updateOpenTab(path, newPath);
