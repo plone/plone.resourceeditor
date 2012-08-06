@@ -192,6 +192,9 @@ var BASE_URL = '%s';
         to getFolder(). This can be used for example to only show image files
         in a file system tree.
         """
+
+        path = path.encode('utf-8')
+
         folders = []
         files = []
 
@@ -214,6 +217,8 @@ var BASE_URL = '%s';
         indicates whether the dimensions of the file (if an image) should be
         returned.
         """
+
+        path = path.encode('utf-8')
 
         path = self.normalizePath(path)
         obj = self.getObject(path)
@@ -282,6 +287,9 @@ var BASE_URL = '%s';
         """Create a new directory on the server within the given path.
         """
 
+        path = path.encode('utf-8')
+        name = name.encode('utf-8')
+
         parentPath = self.normalizePath(path)
         parent = self.getObject(parentPath)
 
@@ -325,17 +333,24 @@ var BASE_URL = '%s';
         URL, so URL-encoded at a minimum.
         """
 
+        path = path.encode('utf-8')
+        if replacepath != None:
+            replacepath = replacepath.encode('utf-8')
+
         parentPath = self.normalizePath(path)
 
         error = ''
         code = 0
 
         name = newfile.filename
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+
         if replacepath:
             newPath = replacepath
             parentPath = '/'.join(replacepath.split('/')[:-1])
         else:
-            newPath = u"%s/%s" % (parentPath, name,)
+            newPath = "%s/%s" % (parentPath, name,)
 
         parent = self.getObject(parentPath)
         if name in parent and not replacepath:
@@ -345,7 +360,7 @@ var BASE_URL = '%s';
             code = 1
         else:
             try:
-                self.resourceDirectory.writeFile(newPath.encode('utf-8'),
+                self.resourceDirectory.writeFile(newPath,
                                                  newfile)
             except (ValueError,):
                 error = translate(_(u'filemanager_error_file_invalid',
@@ -364,11 +379,15 @@ var BASE_URL = '%s';
     def addNew(self, path, name):
         """Add a new empty file in the given directory
         """
+
+        path = path.encode('utf-8')
+        name = name.encode('utf-8')
+
         error = ''
         code = 0
 
         parentPath = self.normalizePath(path)
-        newPath = u"%s/%s" % (parentPath, name,)
+        newPath = "%s/%s" % (parentPath, name,)
 
         parent = self.getObject(parentPath)
 
@@ -383,7 +402,7 @@ var BASE_URL = '%s';
                               context=self.request)
             code = 2
         else:
-            self.resourceDirectory.writeFile(newPath.encode('utf-8'), '')
+            self.resourceDirectory.writeFile(newPath, '')
 
         return {
             "parent": parentPath,
@@ -395,6 +414,9 @@ var BASE_URL = '%s';
     def rename(self, path, newName):
         """Rename the item at the given path to the new name
         """
+
+        path = path.encode('utf-8')
+        newName = newName.encode('utf-8')
 
         npath = self.normalizePath(path)
         oldPath = newPath = '/'.join(npath.split('/')[:-1])
@@ -426,6 +448,8 @@ var BASE_URL = '%s';
         """Delete the item at the given path.
         """
 
+        path = path.encode('utf-8')
+
         npath = self.normalizePath(path)
         parentPath = '/'.join(npath.split('/')[:-1])
         name = npath.split('/')[-1]
@@ -442,6 +466,10 @@ var BASE_URL = '%s';
     def move(self, path, directory):
         """Move the item at the given path to a new directory
         """
+
+        path = path.encode('utf-8')
+        directory = directory.encode('utf-8')
+
         npath = self.normalizePath(path)
         newParentPath = self.normalizePath(directory)
 
@@ -479,9 +507,11 @@ var BASE_URL = '%s';
         """Serve the requested file to the user
         """
 
+        path = path.encode('utf-8')
+
         npath = self.normalizePath(path)
         parentPath = '/'.join(npath.split('/')[:-1])
-        name = npath.split('/')[-1].encode('utf-8')
+        name = npath.split('/')[-1]
 
         parent = self.getObject(parentPath)
 
@@ -519,8 +549,11 @@ var BASE_URL = '%s';
     # Methods that are their own views
     def getFile(self, path):
         self.setup()
+
+        path = path.encode('utf-8')
+
         path = self.normalizePath(path)
-        file = self.context.context.unrestrictedTraverse(path.encode('utf-8'))
+        file = self.context.context.unrestrictedTraverse(path)
         ext = self.getExtension(path, file)
         result = {'ext': ext}
         if ext in self.knownExtensions:
@@ -533,6 +566,8 @@ var BASE_URL = '%s';
         return json.dumps(result)
 
     def saveFile(self, path, value):
+        path = path.encode('utf-8')
+
         processInputs(self.request)
         value = value.replace('\r\n', '\n')
         self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
