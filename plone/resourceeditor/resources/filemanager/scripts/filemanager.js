@@ -175,12 +175,19 @@ jQuery(function($) {
             /**
              * Get the folder of the given node
              */
-            FileManager.getFolder = function(node){
+            FileManager.getFolder = function(node) {
                 if(!node.data.isFolder){
                     node = node.parent;
                 }
                 return node;
             };
+
+            /**
+             * Get the folder tree
+             */
+             FileManager.getFolderTree = function(node) {
+                return fileTree.dynatree("getTree");
+             };
 
             /**
              * Activate the given node
@@ -455,12 +462,15 @@ jQuery(function($) {
 
                                         var newPath = newParent + '/' + newName;
 
+                                        // Trigger event before the node change so that event handlers
+                                        // can access the old node
+                                        fileManagerElement.trigger('resourceeditor.renamed', [path, newPath]);
+
                                         node.data.title = newName;
                                         node.data.key = newPath;
                                         node.render();
 
                                         FileManager.updateOpenTab(path, newPath);
-
                                     } else {
                                         deferred = function() {
                                             FileManager.showPrompt({
@@ -509,6 +519,11 @@ jQuery(function($) {
                             success: function(result) {
                                 if(result['code'] === 0){
                                     FileManager.removeTab(path);
+
+                                    // trigger before we remove the node so event handlers can
+                                    // inspect it
+                                    fileManagerElement.trigger('resourceeditor.deleted', path);
+
                                     node.remove();
                                     isDeleted = true;
                                 } else {
