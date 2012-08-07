@@ -1,7 +1,6 @@
 import urllib
 import os.path
 import json
-import string
 
 from zope.component import queryMultiAdapter
 from zope.publisher.browser import BrowserView
@@ -172,6 +171,13 @@ var BASE_URL = '%s';
             path = path[:-1]
         return path
 
+    def normalizeReturnPath(self, path):
+        if not path.startswith('/'):
+            path = '/' + path
+        if path.endswith('/'):
+            path = path[:-1]
+        return path
+
     def parentPath(self, path):
         return '/'.join(path.split('/')[:-1])
 
@@ -274,7 +280,7 @@ var BASE_URL = '%s';
             properties['width'] = obj.width
 
         return {
-            'path': path,
+            'path': self.normalizeReturnPath(path),
             'filename': filename,
             'fileType': fileType,
             'preview': preview,
@@ -316,7 +322,7 @@ var BASE_URL = '%s';
                 code = 1
 
         return {
-            'parent': parentPath,
+            'parent': self.normalizeReturnPath(parentPath),
             'name': name,
             'error': error,
             'code': code,
@@ -369,8 +375,8 @@ var BASE_URL = '%s';
                 code = 1
 
         return {
-            "parent": parentPath,
-            "path": path,
+            "parent": self.normalizeReturnPath(parentPath),
+            "path": self.normalizeReturnPath(path),
             "name": name,
             "error": error,
             "code": code,
@@ -405,7 +411,7 @@ var BASE_URL = '%s';
             self.resourceDirectory.writeFile(newPath, '')
 
         return {
-            "parent": parentPath,
+            "parent": self.normalizeReturnPath(parentPath),
             "name": name,
             "error": error,
             "code": code,
@@ -436,9 +442,9 @@ var BASE_URL = '%s';
                 parent.rename(oldName, newName)
 
         return {
-            "oldParent": oldPath,
+            "oldParent": self.normalizeReturnPath(oldPath),
             "oldName": oldName,
-            "newParent": newPath,
+            "newParent": self.normalizeReturnPath(newPath),
             "newName": newName,
             'error': error,
             'code': code,
@@ -458,7 +464,7 @@ var BASE_URL = '%s';
         del parent[name]
 
         return {
-            'path': path,
+            'path': self.normalizeReturnPath(path),
             'error': '',
             'code': 0,
         }
@@ -494,13 +500,11 @@ var BASE_URL = '%s';
             target[filename] = obj
 
         newCanonicalPath = "%s/%s" % (newParentPath, filename)
-        if not newCanonicalPath.startswith('/'):
-            newCanonicalPath = "/" + newCanonicalPath
 
         return {
             'code': code,
             'error': error,
-            'newPath': newCanonicalPath,
+            'newPath': self.normalizeReturnPath(newCanonicalPath),
         }
 
     def download(self, path):
@@ -600,4 +604,3 @@ var BASE_URL = '%s';
             "expand": True,
             'children': getFolder(self.context)
         }])
-
