@@ -466,8 +466,9 @@ jQuery(function($) {
                                         // can access the old node
                                         fileManagerElement.trigger('resourceeditor.renamed', [path, newPath]);
 
+                                        recursivelyChangeKeys(path, newPath, node);
+
                                         node.data.title = newName;
-                                        node.data.key = newPath;
                                         node.render();
 
                                         FileManager.updateOpenTab(path, newPath);
@@ -843,6 +844,16 @@ jQuery(function($) {
                 });
             }
 
+            function recursivelyChangeKeys(path, newPath, node) {
+                node.data.key = newPath + node.data.key.slice(path.length);
+                var children = node.getChildren();
+                if(children !== null) {
+                    for(var i = 0; i < children.length; ++i) {
+                        recursivelyChangeKeys(path, newPath, children[i]);
+                    }
+                }
+            }
+
             /**
              * Save the current file
              */
@@ -977,7 +988,7 @@ jQuery(function($) {
                         },
                         async: false,
                         success: function(result){
-                            if(result['code'] == 0) {
+                            if(result['code'] === 0) {
                                 var path = sourceNode.data.key;
                                 var newPath = result['newPath'];
 
@@ -985,8 +996,9 @@ jQuery(function($) {
                                 // can access the old node
                                 fileManagerElement.trigger('resourceeditor.renamed', [path, newPath]);
 
-                                sourceNode.data.key = newPath;
+                                recursivelyChangeKeys(path, newPath, sourceNode);
                                 sourceNode.render();
+
                                 FileManager.updateOpenTab(path, newPath);
                             } else {
                                 FileManager.showPrompt({
