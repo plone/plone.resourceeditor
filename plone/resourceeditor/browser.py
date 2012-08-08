@@ -172,10 +172,10 @@ var BASE_URL = '%s';
         return path
 
     def normalizeReturnPath(self, path):
-        if not path.startswith('/'):
-            path = '/' + path
         if path.endswith('/'):
             path = path[:-1]
+        if not path.startswith('/'):
+            path = '/' + path
         return path
 
     def parentPath(self, path):
@@ -296,30 +296,38 @@ var BASE_URL = '%s';
         path = path.encode('utf-8')
         name = name.encode('utf-8')
 
-        parentPath = self.normalizePath(path)
-        parent = self.getObject(parentPath)
-
         code = 0
         error = ''
 
-        if not validateFilename(name):
-            error = translate(_(u'filemanager_invalid_filename',
-                              default=u"Invalid file name."),
+        parentPath = self.normalizePath(path)
+        parent = None
+
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent directory found."),
                               context=self.request)
-            code = 1
-        elif name in parent:
-            error = translate(_(u'filemanager_error_file_exists',
-                              default=u"File already exists."),
-                              context=self.request)
-            code = 2
+            code = 4
         else:
-            try:
-                parent.makeDirectory(name)
-            except UnicodeDecodeError:
+            if not validateFilename(name):
                 error = translate(_(u'filemanager_invalid_filename',
-                              default=u"Invalid file name."),
-                              context=self.request)
+                                  default=u"Invalid file name."),
+                                  context=self.request)
                 code = 1
+            elif name in parent:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                code = 2
+            else:
+                try:
+                    parent.makeDirectory(name)
+                except UnicodeDecodeError:
+                    error = translate(_(u'filemanager_invalid_filename',
+                                  default=u"Invalid file name."),
+                                  context=self.request)
+                    code = 1
 
         return {
             'parent': self.normalizeReturnPath(parentPath),
