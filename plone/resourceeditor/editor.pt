@@ -55,8 +55,9 @@
                         localizedMessages[$(this).attr('data-message-id')] = $(this).text();
                     });
 
-                    // #itemOptions needs to be at top level
+                    // right-click menu divs needs to be at top level for styling to work
                     $("#itemOptions").appendTo("body");
+                    $("#rootItemOptions").appendTo("body");
 
                 });
 
@@ -111,6 +112,12 @@
                     </ul>
                 </div>
             </div>
+
+            <ul id="rootItemOptions" class="contextMenu">
+                <li class="newfolder"><a href="#newfolder" i18n:translate="filemanager_new_folder">New folder</a></li>
+                <li class="addnew"><a href="#addnew" i18n:translate="filemanager_new_file">New file</a></li>
+                <li class="upload"><a href="#upload" i18n:translate="filemanager_upload">Upload</a></li>
+            </ul>
 
             <ul id="itemOptions" class="contextMenu">
                 <li class="rename"><a href="#rename" i18n:translate="filemanager_rename">Rename</a></li>

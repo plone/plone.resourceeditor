@@ -814,36 +814,6 @@ jQuery(function($) {
                 });
             };
 
-            /**
-             * Binds contextual menus to items in list and grid views.
-             */
-            function bindMenus(span){
-                $(span).contextMenu({menu: "itemOptions"}, function(action, el, pos) {
-                    // The event was bound to the <span> tag, but the node object
-                    // is stored in the parent <li> tag
-                    var node = $.ui.dynatree.getNode(el);
-                    switch(action) {
-                        case "rename":
-                            FileManager.renameItem(node);
-                            break;
-                        case "delete":
-                            FileManager.deleteItem(node);
-                            break;
-                        case "newfolder":
-                            FileManager.addNewFolder(FileManager.getFolder(node));
-                            break;
-                        case "addnew":
-                            FileManager.addNewFile(FileManager.getFolder(node));
-                            break;
-                        case "upload":
-                            FileManager.uploadFile(FileManager.getFolder(node));
-                            break;
-                        default:
-                            break;
-                    }
-                });
-            }
-
             function recursivelyChangeKeys(path, newPath, node) {
                 node.data.key = newPath + node.data.key.slice(path.length);
                 var children = node.getChildren();
@@ -1011,7 +981,51 @@ jQuery(function($) {
                   }
                 },
                 onCreate: function(node, span){
-                    bindMenus(span);
+                    if(node.data.key == '/') {
+                        $(span).contextMenu({menu: "rootItemOptions"}, function(action, el, pos) {
+                            // The event was bound to the <span> tag, but the node object
+                            // is stored in the parent <li> tag
+                            var node = $.ui.dynatree.getNode(el);
+                            switch(action) {
+                                case "newfolder":
+                                    FileManager.addNewFolder(FileManager.getFolder(node));
+                                    break;
+                                case "addnew":
+                                    FileManager.addNewFile(FileManager.getFolder(node));
+                                    break;
+                                case "upload":
+                                    FileManager.uploadFile(FileManager.getFolder(node));
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+                    } else {
+                        $(span).contextMenu({menu: "itemOptions"}, function(action, el, pos) {
+                            // The event was bound to the <span> tag, but the node object
+                            // is stored in the parent <li> tag
+                            var node = $.ui.dynatree.getNode(el);
+                            switch(action) {
+                                case "rename":
+                                    FileManager.renameItem(node);
+                                    break;
+                                case "delete":
+                                    FileManager.deleteItem(node);
+                                    break;
+                                case "newfolder":
+                                    FileManager.addNewFolder(FileManager.getFolder(node));
+                                    break;
+                                case "addnew":
+                                    FileManager.addNewFile(FileManager.getFolder(node));
+                                    break;
+                                case "upload":
+                                    FileManager.uploadFile(FileManager.getFolder(node));
+                                    break;
+                                default:
+                                    break;
+                            }
+                        });
+                    }
                 },
                 onClick: function(node, event) {
                     // Close menu on click
