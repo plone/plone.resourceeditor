@@ -248,8 +248,7 @@ var BASE_URL = '%s';
                 size_specifier = u'mb'
                 size = size / 1024
             properties['size'] = '%i%s' % (size,
-                translate(_(u'filemanager_%s' % size_specifier,
-                          default=size_specifier), context=self.request)
+                translate(_(u'filemanager_%s' % size_specifier, default=size_specifier), context=self.request)
                 )
 
         fileType = 'txt'
@@ -306,26 +305,26 @@ var BASE_URL = '%s';
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent directory found."),
+                              default=u"Parent folder not found."),
                               context=self.request)
-            code = 4
+            code = 1
         else:
             if not validateFilename(name):
-                error = translate(_(u'filemanager_invalid_filename',
-                                  default=u"Invalid file name."),
+                error = translate(_(u'filemanager_invalid_foldername',
+                                  default=u"Invalid folder name."),
                                   context=self.request)
                 code = 1
             elif name in parent:
-                error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
+                error = translate(_(u'filemanager_error_folder_exists',
+                                  default=u"Folder already exists."),
                                   context=self.request)
-                code = 2
+                code = 1
             else:
                 try:
                     parent.makeDirectory(name)
                 except UnicodeDecodeError:
-                    error = translate(_(u'filemanager_invalid_filename',
-                                  default=u"Invalid file name."),
+                    error = translate(_(u'filemanager_invalid_foldername',
+                                  default=u"Invalid folder name."),
                                   context=self.request)
                     code = 1
 
@@ -366,21 +365,27 @@ var BASE_URL = '%s';
         else:
             newPath = "%s/%s" % (parentPath, name,)
 
-        parent = self.getObject(parentPath)
-        if name in parent and not replacepath:
-            error = translate(_(u'filemanager_error_file_exists',
-                              default=u"File already exists."),
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
                               context=self.request)
             code = 1
         else:
-            try:
-                self.resourceDirectory.writeFile(newPath,
-                                                 newfile)
-            except (ValueError,):
-                error = translate(_(u'filemanager_error_file_invalid',
-                                  default=u"Could not read file."),
+            if name in parent and not replacepath:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
                                   context=self.request)
                 code = 1
+            else:
+                try:
+                    self.resourceDirectory.writeFile(newPath, newfile)
+                except ValueError:
+                    error = translate(_(u'filemanager_error_file_invalid',
+                                      default=u"Could not read file."),
+                                      context=self.request)
+                    code = 1
 
         return {
             "parent": self.normalizeReturnPath(parentPath),
@@ -403,20 +408,26 @@ var BASE_URL = '%s';
         parentPath = self.normalizePath(path)
         newPath = "%s/%s" % (parentPath, name,)
 
-        parent = self.getObject(parentPath)
-
-        if not validateFilename(name):
-            error = translate(_(u'filemanager_invalid_filename',
-                              default=u"Invalid file name."),
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
                               context=self.request)
             code = 1
-        elif name in parent:
-            error = translate(_(u'filemanager_error_file_exists',
-                              default=u"File already exists."),
-                              context=self.request)
-            code = 2
         else:
-            self.resourceDirectory.writeFile(newPath, '')
+            if not validateFilename(name):
+                error = translate(_(u'filemanager_invalid_filename',
+                                  default=u"Invalid file name."),
+                                  context=self.request)
+                code = 1
+            elif name in parent:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                code = 1
+            else:
+                self.resourceDirectory.writeFile(newPath, '')
 
         return {
             "parent": self.normalizeReturnPath(parentPath),
@@ -435,19 +446,26 @@ var BASE_URL = '%s';
         npath = self.normalizePath(path)
         oldPath = newPath = '/'.join(npath.split('/')[:-1])
         oldName = npath.split('/')[-1]
-        parent = self.getObject(oldPath)
 
         code = 0
         error = ''
 
-        if newName != oldName:
-            if newName in parent:
-                error = translate(_(u'filemanager_error_file_exists',
-                              default=u"File already exists."),
+        try:
+            parent = self.getObject(oldPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
                               context=self.request)
-                code = 1
-            else:
-                parent.rename(oldName, newName)
+            code = 1
+        else:
+            if newName != oldName:
+                if newName in parent:
+                    error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                    code = 1
+                else:
+                    parent.rename(oldName, newName)
 
         return {
             "oldParent": self.normalizeReturnPath(oldPath),
@@ -467,14 +485,29 @@ var BASE_URL = '%s';
         npath = self.normalizePath(path)
         parentPath = '/'.join(npath.split('/')[:-1])
         name = npath.split('/')[-1]
+        code = 0
+        error = ''
 
-        parent = self.getObject(parentPath)
-        del parent[name]
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            try:
+                del parent[name]
+            except KeyError:
+                error = translate(_(u'filemanager_error_file_not_found',
+                                  default=u"File not found."),
+                                  context=self.request)
+                code = 1
 
         return {
             'path': self.normalizeReturnPath(path),
-            'error': '',
-            'code': 0,
+            'error': error,
+            'code': code,
         }
 
     def move(self, path, directory):
@@ -490,22 +523,32 @@ var BASE_URL = '%s';
         parentPath = self.parentPath(npath)
         filename = npath.split('/')[-1]
 
-        parent = self.getObject(parentPath)
-        target = self.getObject(newParentPath)
-
-        obj = parent[filename]
-        del parent[filename]
-
         code = 0
         error = ''
 
-        if filename in parent:
-            error = translate(_(u'filemanager_error_file_exists',
-                              default=u"File already exists."),
+        try:
+            parent = self.getObject(parentPath)
+            target = self.getObject(newParentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
                               context=self.request)
             code = 1
         else:
-            target[filename] = obj
+            if filename not in parent:
+                error = translate(_(u'filemanager_error_file_not_found',
+                                  default=u"File not found."),
+                                  context=self.request)
+                code = 1
+            elif filename in target:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                code = 1
+            else:
+                obj = parent[filename]
+                del parent[filename]
+                target[filename] = obj
 
         newCanonicalPath = "%s/%s" % (newParentPath, filename)
 
