@@ -41,20 +41,14 @@ jQuery(function($) {
             FileManager.editors = {};
             var nextEditorId = 0;
 
-            var HTMLMode = require("ace/mode/html").Mode;
-            var CSSMode  = require("ace/mode/css").Mode;
-            var XMLMode  = require("ace/mode/xml").Mode;
-            var JSMode   = require("ace/mode/javascript").Mode;
-            var TextMode = require("ace/mode/text").Mode;
-
             var extensionModes = {
-                css: new CSSMode(),
-                js: new JSMode(),
-                htm: new HTMLMode(),
-                html: new HTMLMode(),
-                xml: new XMLMode()
+                css: "ace/mode/css",
+                js: "ace/mode/javascript",
+                htm: "ace/mode/html",
+                html: "ace/mode/html",
+                xml: "ace/mode/xml"
             };
-            var defaultMode = new TextMode();
+            var defaultMode = "ace/mode/text";
 
             var currentFolder = '/';
 
@@ -392,6 +386,23 @@ jQuery(function($) {
                                 }
 
                                 var editor = new SourceEditor(editorId, mode, data.contents, false, markDirty, true);
+
+                                // Set up key bindings for the editor
+                                if(editor.ace !== null) {
+                                    editor.ace.commands.addCommand({
+                                        name: 'saveEditor',
+                                        bindKey: {
+                                            mac: 'Command-S',
+                                            win: 'Ctrl-S',
+                                            sender: 'editor'
+                                        },
+                                        exec: function(env, args, request) {
+                                            var path = FileManager.getCurrentFilePath();
+                                            FileManager.saveFile(path);
+                                        }
+                                    });
+                                }
+
                                 FileManager.editors[path] = editor;
 
                                 fileManagerElement.trigger('resourceeditor.loaded', path);
@@ -858,21 +869,6 @@ jQuery(function($) {
             // Adjust layout.
             FileManager.resizeEditor();
             $(window).resize(FileManager.resizeEditor);
-
-            // Set up key bindings for the editor
-            var canon = require('pilot/canon');
-            canon.addCommand({
-                name: 'saveEditor',
-                bindKey: {
-                    mac: 'Command-S',
-                    win: 'Ctrl-S',
-                    sender: 'editor'
-                },
-                exec: function(env, args, request) {
-                    var path = FileManager.getCurrentFilePath();
-                    FileManager.saveFile(path);
-                }
-            });
 
             // Set up overlay support
             prompt.overlay({

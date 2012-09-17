@@ -1,3 +1,3 @@
-This directory contains a stripped-down version of ACE 0.2.0.
+This directory contains the minified ACE 1.0 release.
 
-See https://github.com/ajaxorg/ace for details.
+See ace.ajax.org for details.

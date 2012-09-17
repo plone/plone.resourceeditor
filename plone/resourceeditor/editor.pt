@@ -31,13 +31,6 @@
         <metal:block define-macro="ace-resources">
             <!-- ACE editor -->
             <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/ace.js"></script>
-            <!-- Theme -->
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/theme-textmate.js"></script>
-            <!-- Syntax highlighting -->
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/mode-html.js"></script>
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/mode-css.js"></script>
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/mode-javascript.js"></script>
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/mode-xml.js"></script>
 
             <!-- Editor abstraction -->
             <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/editor.js"></script>

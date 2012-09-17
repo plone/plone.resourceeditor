@@ -1,15 +1,17 @@
 // Editor abstraction
 
-var SourceEditor = function(element, mode, data, readonly, onchange, gutter) {
+var SourceEditor = function(element, mode, data, readonly, onchange, gutter, theme) {
     this.useAce = ! $.browser.msie;
 
     this.element = '#' + element;
     this.ace = null;
 
+    theme = theme || "ace/theme/textmate";
+
     if(this.useAce) {
         this.ace = ace.edit(element);
 
-        this.ace.setTheme("ace/theme/textmate");
+        this.ace.setTheme(theme);
         this.ace.getSession().setTabSize(4);
         this.ace.getSession().setUseSoftTabs(true);
         this.ace.getSession().setUseWrapMode(false);
