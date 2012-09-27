@@ -621,9 +621,10 @@ var BASE_URL = '%s';
         return json.dumps(result)
 
     def saveFile(self, path, value):
-        path = path.encode('utf-8')
-
         processInputs(self.request)
+        path, value = self.request.form['path'], self.request.form['value']
+        
+        path = path.encode('utf-8')
         value = value.replace('\r\n', '\n')
         self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
         return ' '  # Zope no likey empty responses
