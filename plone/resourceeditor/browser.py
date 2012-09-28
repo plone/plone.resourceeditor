@@ -621,6 +621,8 @@ var BASE_URL = '%s';
         return json.dumps(result)
 
     def saveFile(self, path, value):
+        # Our inputs come as str encoded using potentially different charset encoding.
+        self.request.form['path'], self.request.form['value'] = path, value
         processInputs(self.request)
         path, value = self.request.form['path'], self.request.form['value']
         
