@@ -977,11 +977,10 @@ jQuery(function($) {
                   }
                 },
                 onCreate: function(node, span){
+                    $(span).data('node', node);
                     if(node.data.key == '/') {
                         $(span).contextMenu({menu: "rootItemOptions"}, function(action, el, pos) {
-                            // The event was bound to the <span> tag, but the node object
-                            // is stored in the parent <li> tag
-                            var node = $.ui.dynatree.getNode(el);
+                            var node = $(el).data('node');
                             switch(action) {
                                 case "newfolder":
                                     FileManager.addNewFolder(FileManager.getFolder(node));
@@ -998,9 +997,7 @@ jQuery(function($) {
                         });
                     } else {
                         $(span).contextMenu({menu: "itemOptions"}, function(action, el, pos) {
-                            // The event was bound to the <span> tag, but the node object
-                            // is stored in the parent <li> tag
-                            var node = $.ui.dynatree.getNode(el);
+                            var node = $(el).data('node');
                             switch(action) {
                                 case "rename":
                                     FileManager.renameItem(node);
