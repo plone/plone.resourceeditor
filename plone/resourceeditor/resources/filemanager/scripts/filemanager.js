@@ -194,6 +194,7 @@ jQuery(function($) {
              * Generate a key from a parent folder name and a file/folder name.
              */
             FileManager.joinKeyPath = function(parent, name) {
+                if(parent === "/") parent = "";
                 var path = [parent || "", name || ""].join('/');
                 if(path[0] != '/') path = '/' + path;
                 return path;
