@@ -611,7 +611,7 @@ var BASE_URL = '%s';
         file = self.context.context.unrestrictedTraverse(path)
         ext = self.getExtension(path, file)
         result = {'ext': ext}
-        if ext in self.knownExtensions:
+        if ext not in self.imageExtensions:
             result['contents'] = str(file.data)
         else:
             info = self.getInfo(path)
