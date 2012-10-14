@@ -41,7 +41,7 @@ jQuery(function($) {
             FileManager.editors = {};
             var nextEditorId = 0;
 
-            var extensionModes = {
+            FileManager.extensionModes = {
                 css: "ace/mode/css",
                 js: "ace/mode/javascript",
                 htm: "ace/mode/html",
@@ -377,8 +377,8 @@ jQuery(function($) {
                                 $("#editors").append(editorListItem);
 
                                 var mode = defaultMode;
-                                if (extension in extensionModes) {
-                                    mode = extensionModes[extension];
+                                if (extension in FileManager.extensionModes) {
+                                    mode = FileManager.extensionModes[extension];
                                 }
 
                                 function markDirty() {
