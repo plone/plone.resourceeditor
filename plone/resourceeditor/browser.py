@@ -621,11 +621,14 @@ var BASE_URL = '%s';
         return json.dumps(result)
 
     def saveFile(self, path, value):
-        path = path.encode('utf-8')
-
         processInputs(self.request)
-        value = value.replace('\r\n', '\n')
-        self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
+
+        path = self.request.form.get('path', path)
+        value = self.request.form.get('value', value)
+
+        path = path.lstrip('/').encode('utf-8')
+        value = value.replace('\r\n', '\n').encode('utf-8')
+        self.context.writeFile(path, value)
         return ' '  # Zope no likey empty responses
 
     def filetree(self):
