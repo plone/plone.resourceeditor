@@ -612,7 +612,7 @@ var BASE_URL = '%s';
         file = self.context.context.unrestrictedTraverse(path)
         ext = self.getExtension(path, file)
         result = {'ext': ext}
-        if ext in self.knownExtensions:
+        if ext not in self.imageExtensions:
             result['contents'] = str(file.data)
         else:
             info = self.getInfo(path)
@@ -639,6 +639,10 @@ var BASE_URL = '%s';
         path = path.encode('utf-8')
         value = value.replace('\r\n', '\n')
         self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
+
+        path = path.lstrip('/').encode('utf-8')
+        value = value.replace('\r\n', '\n').encode('utf-8')
+        self.context.writeFile(path, value)
         return ' '  # Zope no likey empty responses
 
     def filetree(self):

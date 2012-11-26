@@ -41,7 +41,7 @@ jQuery(function($) {
             FileManager.editors = {};
             var nextEditorId = 0;
 
-            var extensionModes = {
+            FileManager.extensionModes = {
                 css: "ace/mode/css",
                 js: "ace/mode/javascript",
                 htm: "ace/mode/html",
@@ -194,6 +194,7 @@ jQuery(function($) {
              * Generate a key from a parent folder name and a file/folder name.
              */
             FileManager.joinKeyPath = function(parent, name) {
+                if(parent === "/") parent = "";
                 var path = [parent || "", name || ""].join('/');
                 if(path[0] != '/') path = '/' + path;
                 return path;
@@ -376,8 +377,8 @@ jQuery(function($) {
                                 $("#editors").append(editorListItem);
 
                                 var mode = defaultMode;
-                                if (extension in extensionModes) {
-                                    mode = extensionModes[extension];
+                                if (extension in FileManager.extensionModes) {
+                                    mode = FileManager.extensionModes[extension];
                                 }
 
                                 function markDirty() {
@@ -977,11 +978,10 @@ jQuery(function($) {
                   }
                 },
                 onCreate: function(node, span){
+                    $(span).data('node', node);
                     if(node.data.key == '/') {
                         $(span).contextMenu({menu: "rootItemOptions"}, function(action, el, pos) {
-                            // The event was bound to the <span> tag, but the node object
-                            // is stored in the parent <li> tag
-                            var node = $.ui.dynatree.getNode(el);
+                            var node = $(el).data('node');
                             switch(action) {
                                 case "newfolder":
                                     FileManager.addNewFolder(FileManager.getFolder(node));
@@ -998,9 +998,7 @@ jQuery(function($) {
                         });
                     } else {
                         $(span).contextMenu({menu: "itemOptions"}, function(action, el, pos) {
-                            // The event was bound to the <span> tag, but the node object
-                            // is stored in the parent <li> tag
-                            var node = $.ui.dynatree.getNode(el);
+                            var node = $(el).data('node');
                             switch(action) {
                                 case "rename":
                                     FileManager.renameItem(node);

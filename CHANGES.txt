@@ -1,9 +1,27 @@
 Changelog
 =========
 
+<<<<<<< HEAD
 1.0b3 (Unreleased)
 ------------------
 - Fixed issue with charset encoding on safeFile [djay]
+=======
+1.0b4 (unreleased)
+------------------
+
+- Fixed a bug with saving files containing non-ASCII characters.
+  [optilude]
+
+
+1.0b3 (2012-10-16)
+------------------
+
+- Fix right click menu bug
+  [optilude]
+
+- Upgrade to latest version of ACE
+  [optilude]
+>>>>>>> master
 
 
 1.0b2 (2012-08-08)
@@ -12,7 +30,9 @@ Changelog
 - Upgrade to version 1.0 of the ACE editor
   [optilude]
 
+
 1.0b1 (2012-08-08)
 ------------------
 
 - Initial release
+  [optilude]
