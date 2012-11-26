@@ -1,6 +1,11 @@
 Changelog
 =========
 
+<<<<<<< HEAD
+1.0b3 (Unreleased)
+------------------
+- Fixed issue with charset encoding on safeFile [djay]
+=======
 1.0b4 (unreleased)
 ------------------
 
@@ -16,6 +21,7 @@ Changelog
 
 - Upgrade to latest version of ACE
   [optilude]
+>>>>>>> master
 
 
 1.0b2 (2012-08-08)
