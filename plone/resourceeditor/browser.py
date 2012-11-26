@@ -3,6 +3,7 @@ import os.path
 import json
 
 from zope.component import queryMultiAdapter
+from zope.i18n.interfaces import IUserPreferredCharsets
 from zope.publisher.browser import BrowserView
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
@@ -622,10 +623,19 @@ var BASE_URL = '%s';
 
     def saveFile(self, path, value):
         # Our inputs come as str encoded using potentially different charset encoding.
-        self.request.form['path'], self.request.form['value'] = path, value
-        processInputs(self.request)
-        path, value = self.request.form['path'], self.request.form['value']
-        
+        if not isinstance(value, unicode):
+            envadapter = IUserPreferredCharsets(self.request, None)
+            if envadapter is None:
+                charsets = ['utf-8']
+            else:
+                charsets = envadapter.getPreferredCharsets() or ['utf-8']
+            for charset in charsets:
+                try:
+                    value = unicode(value, charset)
+                    break
+                except UnicodeError:
+                    pass
+
         path = path.encode('utf-8')
         value = value.replace('\r\n', '\n')
         self.context.writeFile(path.lstrip('/'), value.encode('utf-8'))
