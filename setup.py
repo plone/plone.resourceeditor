@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '1.0b4.dev0'
+version = '1.0b4'
 
 setup(name='plone.resourceeditor',
       version=version,
