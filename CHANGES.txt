@@ -4,7 +4,8 @@ Changelog
 1.0b5 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- do not set value inside of pre tag since it can go crazy on some markup
+  [vangheem]
 
 
 1.0b4 (2013-01-01)

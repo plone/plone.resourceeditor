@@ -371,7 +371,7 @@ jQuery(function($) {
 
                             if(data.contents !== undefined){
                                 var extension = data.ext;
-                                var editorArea = $('<pre id="' + editorId + '" name="' + path + '">' + data.contents + '</pre>');
+                                var editorArea = $('<pre id="' + editorId + '" name="' + path + '"></pre>');
                                 editorArea.height(editorHeight - 32);
                                 editorListItem.append(editorArea);
                                 $("#editors").append(editorListItem);
