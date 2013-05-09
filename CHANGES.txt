@@ -4,6 +4,9 @@ Changelog
 1.0b5 (unreleased)
 ------------------
 
+- make sure theme is disable
+  [vangheem]
+
 - do not set value inside of pre tag since it can go crazy on some markup
   [vangheem]
 

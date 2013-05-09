@@ -57,6 +57,10 @@ class FileManager(BrowserView):
     )
 
     def __call__(self):
+        # make sure theme is disable for these requests
+        self.request.response.setHeader('X-Theme-Disabled', 'True')
+        self.request['HTTP_X_THEME_ENABLED'] = False
+
         self.setup()
         form = self.request.form
 
