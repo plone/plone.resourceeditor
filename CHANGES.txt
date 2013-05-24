@@ -1,8 +1,8 @@
 Changelog
 =========
 
-1.0b5 (unreleased)
-------------------
+1.0 (2013-05-23)
+----------------
 
 - make sure theme is disable
   [vangheem]
