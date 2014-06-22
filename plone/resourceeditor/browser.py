@@ -3,6 +3,7 @@ import os.path
 import json
 
 from zope.component import queryMultiAdapter
+from zope.component.hooks import getSite
 from zope.publisher.browser import BrowserView
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
@@ -33,6 +34,122 @@ def validateFilename(name):
     return len([n for n in name if n in invalidFilenameChars]) == 0
 
 
+class FileManagerActions(BrowserView):
+
+    def getObject(self, path):
+        path = self.normalizePath(path)
+        if not path:
+            return self.resourceDirectory
+        try:
+            return self.resourceDirectory[path]
+        except (KeyError, NotFound,):
+            raise KeyError(path)
+
+    def getExtension(self, obj):
+        basename, ext = os.path.splitext(obj.__name__)
+        ext = ext[1:].lower()
+        return ext
+
+    def getFile(self, path):
+        self.setup()
+
+        path = path.encode('utf-8')
+
+        path = self.normalizePath(path)
+        file = self.context.context.unrestrictedTraverse(path)
+        ext = self.getExtension(path, file)
+        result = {'ext': ext}
+        if ext not in self.imageExtensions:
+            result['contents'] = str(file.data)
+        else:
+            info = self.getInfo(path)
+            result['info'] = self.previewTemplate(info=info)
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps(result)
+
+    def normalizePath(self, path):
+        if path.startswith('/'):
+            path = path[1:]
+        if path.endswith('/'):
+            path = path[:-1]
+        return path
+
+    def normalizeReturnPath(self, path):
+        if path.endswith('/'):
+            path = path[:-1]
+        if not path.startswith('/'):
+            path = '/' + path
+        return path
+
+    def parentPath(self, path):
+        return '/'.join(path.split('/')[:-1])
+
+    def getInfo(self, obj):
+        """Returns information about a single file. Requests
+        with mode "getinfo" will include an additional parameter, "path",
+        indicating which file to inspect. A boolean parameter "getsize"
+        indicates whether the dimensions of the file (if an image) should be
+        returned.
+        """
+
+        filename = obj.__name__
+
+        properties = {
+            'dateCreated': None,
+            'dateModified': None,
+        }
+
+        if isinstance(obj, File):
+            properties['dateCreated'] = obj.created().strftime('%c')
+            properties['dateModified'] = obj.modified().strftime('%c')
+            size = obj.get_size() / 1024
+            if size < 1024:
+                size_specifier = u'kb'
+            else:
+                size_specifier = u'mb'
+                size = size / 1024
+            properties['size'] = '%i%s' % (
+                size,
+                translate(_(u'filemanager_%s' % size_specifier,
+                            default=size_specifier), context=self.request)
+            )
+
+        fileType = self.getExtension(obj)
+
+        if isinstance(obj, Image):
+            properties['height'] = obj.height
+            properties['width'] = obj.width
+
+        return {
+            'filename': filename,
+            'label': filename,
+            'fileType': fileType,
+            'properties': properties,
+            'folder': False
+        }
+
+    def __call__(self):
+        action = self.request.get('action')
+        if action == 'dataTree':
+
+            def getDirectory(folder):
+                items = []
+                for name in folder.listDirectory():
+                    obj = folder[name]
+                    if IResourceDirectory.providedBy(obj):
+                        items.append({
+                            'label': name,
+                            'folder': True,
+                            'children': getDirectory(obj)
+                        })
+                    else:
+                        items.append(self.getInfo(obj))
+                return items
+
+            return json.dumps(getDirectory(self.context))
+
+
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
     """
@@ -55,6 +172,18 @@ class FileManager(BrowserView):
         'addfolder', 'add', 'addnew',
         'rename', 'delete'
     )
+
+    def pattern_options(self):
+        site = getSite()
+        viewName = '@@plone.resourceeditor.filemanager-actions'
+        return json.dumps({
+            'actionUrl': '%s/++%s++%s/%s' % (
+                site.absolute_url(),
+                self.context.__parent__.__parent__.__name__,
+                self.context.__name__,
+                viewName
+            )
+        })
 
     def __call__(self):
         # make sure theme is disable for these requests
@@ -278,7 +407,7 @@ var BASE_URL = '%s';
                                                              self.staticFiles,
                                                              fileType)
 
-        if getSize and isinstance(obj, Image):
+        if isinstance(obj, Image):
             properties['height'] = obj.height
             properties['width'] = obj.width
 

@@ -8,155 +8,20 @@
 
         <metal:block define-macro="dependency-css">
             <link rel="stylesheet" type="text/css"
-                tal:attributes="href string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/jquery.contextmenu/jquery.contextMenu-1.01.css" />
-            <link rel="stylesheet" type="text/css"
-                tal:attributes="href string:${portal_url}/++resource++plone.resourceeditor/filemanager/skin/ui.dynatree.css">
-            <link rel="stylesheet" type="text/css"
-                tal:attributes="href string:${portal_url}/++resource++plone.resourceeditor/filemanager/styles/filemanager.css" />
-            <!--[if IE]>
-            <link rel="stylesheet" type="text/css"
-                tal:attributes="href string:${portal_url}/++resource++plone.resourceeditor/filemanager/styles/ie.css" />
-            <![endif]-->
+                tal:attributes="href string:${portal_url}/++resource++plone.resourceeditor-filemanager.css" />
         </metal:block>
 
-        <metal:block define-macro="dependency-scripts">
-            <!-- File Manager Related Imports -->
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/jquery.form-2.63.js"></script>
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/jquery.splitter/jquery.splitter-1.5.1.js"></script>
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/jquery.contextmenu/jquery.contextMenu-1.01.js"></script>
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/jqueryui/js/jquery-ui-1.8.16.min.js"></script>
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/jquery.dynatree.min.js"></script>
-        </metal:block>
-
-        <metal:block define-macro="ace-resources">
-            <!-- ACE editor -->
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/ace/ace.js"></script>
-
-            <!-- Editor abstraction -->
-            <script type="text/javascript" charset="utf-8" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/editor.js"></script>
-        </metal:block>
-
-        <metal:block define-macro="filemanager-scripts" tal:define="resourceDirectory nocall:resourceDirectory | nocall:context">
-            <script type="text/javascript" tal:content="structure resourceDirectory/@@plone.resourceeditor.filemanager/filemanagerConfiguration"></script>
-            <script type="text/javascript">
-            var localizedMessages = {}; // Languages for the file manager
-
-            jQuery(function($) {
-
-                $().ready(function() {
-                    $("#messages span").each(function() {
-                        localizedMessages[$(this).attr('data-message-id')] = $(this).text();
-                    });
-
-                    // right-click menu divs needs to be at top level for styling to work
-                    $("#itemOptions").appendTo("body");
-                    $("#rootItemOptions").appendTo("body");
-
-                });
-
-            });
-            </script>
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor/filemanager/scripts/filemanager.js"></script>
+        <metal:block define-macro="filemanager-scripts">
+            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor-filemanager.js"></script>
         </metal:block>
     </metal:block>
 
     <metal:block define-macro="filemanager"
         tal:define="authenticator context/@@authenticator/authenticator | nothing">
 
-        <div id="pb_prompt" class="overlay overlay-ajax">
-            <div class="close"><span i18n:translate="">Close</span></div>
-            <div class="pb-ajax">
-                <div>
-                    <h1 class="documentFirstHeading"></h1>
-                    <div class="documentDescription"></div>
-                    <div class="input">
-                    </div>
-                    <div class="formControls">
-                        <input class="context" type="submit" name="form.button.save" value="Save">
-                        <input class="standalone" type="submit" name="form.button.cancel" value="Cancel">
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <input tal:replace="structure authenticator" />
-
-        <div id="filemanager">
-            <div id="buttons">
-                <input tal:replace="structure authenticator" />
-                <div id="uploadresponse"></div>
-                <input id="mode" name="mode" type="hidden" value="add" />
-                <button id="newfolder" name="newfolder" type="button" i18n:translate="filemanager_new_folder">New folder</button>
-                <button id="addnew" name="addnew" type="button" i18n:translate="filemanager_new_file">New file</button>
-                <button id="upload" name="upload" type="button" value="Upload" class="allowMultiSubmit" i18n:translate="filemanager_upload">Upload file</button>
-                <metal:block define-slot="extraButtons" />
-                <div id="contextButtons">
-                    <button id="save" name="save" type="button" disabled="disabled" i18n:translate="filemanager_save">Save file</button>
-                    <metal:block define-slot="extraContextButtons" />
-                </div>
-            </div>
-            <div id="splitter">
-                <div id="filetree">
-                </div>
-                <div id="fileeditor">
-                    <ul id="fileselector">
-                    </ul>
-                    <ul id="editors">
-                    </ul>
-                </div>
-            </div>
-
-            <ul id="rootItemOptions" class="contextMenu">
-                <li class="newfolder"><a href="#newfolder" i18n:translate="filemanager_new_folder">New folder</a></li>
-                <li class="addnew"><a href="#addnew" i18n:translate="filemanager_new_file">New file</a></li>
-                <li class="upload"><a href="#upload" i18n:translate="filemanager_upload">Upload</a></li>
-            </ul>
-
-            <ul id="itemOptions" class="contextMenu">
-                <li class="rename"><a href="#rename" i18n:translate="filemanager_rename">Rename</a></li>
-                <li class="delete"><a href="#delete" i18n:translate="filemanager_delete">Delete</a></li>
-                <li class="newfolder separator"><a href="#newfolder" i18n:translate="filemanager_new_folder">New folder</a></li>
-                <li class="addnew"><a href="#addnew" i18n:translate="filemanager_new_file">New file</a></li>
-                <li class="upload"><a href="#upload" i18n:translate="filemanager_upload">Upload</a></li>
-            </ul>
-
-            <div style="display:none" id="messages">
-                <tal:comment replace="nothing">
-                    Use page template translation machinery to translate message strings.
-                    These are put into the JavaScript array 'localizedMessages', which is used in
-                    filemanager.js to lookup languages. This takes the place of the
-                    'culture' JS file approach in the default filemanager.
-                </tal:comment>
-
-                <span data-message-id='yes' i18n:translate='filemanager_yes'>Yes</span>
-                <span data-message-id='no' i18n:translate='filemanager_no'>No</span>
-                <span data-message-id='cancel' i18n:translate='filemanager_cancel'>Cancel</span>
-
-                <span data-message-id='error' i18n:translate='filemanager_error'>Error</span>
-
-                <span data-message-id='upload' i18n:translate='filemanager_upload'>Upload file</span>
-                <span data-message-id='rename' i18n:translate='filemanager_rename'>Rename</span>
-                <span data-message-id='create_file' i18n:translate='filemanager_create_file'>New file</span>
-                <span data-message-id='create_folder' i18n:translate='filemanager_create_folder'>New folder</span>
-
-                <span data-message-id='location' i18n:translate='filemanager_location'>Location</span>
-
-                <span data-message-id='no_foldername' i18n:translate='filemanager_no_foldername'>No folder name was provided.</span>
-                <span data-message-id='invalid_foldername' i18n:translate='filemanager_invalid_foldername'>The folder name is invalid.</span>
-
-                <span data-message-id='no_filename' i18n:translate='filemanager_no_filename'>No file name was provided.</span>
-                <span data-message-id='invalid_filename' i18n:translate='filemanager_invalid_filename'>Invalid file name.</span>
-
-                <span data-message-id='new_filename' i18n:translate='filemanager_new_filename'>Enter a new name for the file</span>
-                <span data-message-id='confirmation_delete' i18n:translate='filemanager_confirmation_delete'>Are you sure you want to delete this item?</span>
-
-                <span data-message-id='prompt_filename' i18n:translate='filemanager_prompt_filename'>Enter the name of the new file</span>
-                <span data-message-id='prompt_foldername' i18n:translate='filemanager_prompt_foldername'>Enter the name of the new folder</span>
-                <span data-message-id='prompt_unsavedchanges' i18n:translate="filemanager_prompt_unsavedchanges">You have unsaved changes</span>
-                <span data-message-id='prompt_unsavedchanges_desc' i18n:translate="filemanager_prompt_unsavedchanges_desc">Would you like to save first?</span>
-                <span data-message-id='prompt_fileupload' i18n:translate='filemanager_prompt_fileupload'>Select a file to upload</span>
-            </div>
-
+        <div class="pat-filemanager"
+            tal:attributes="data-pat-filemanager view/pattern_options|filemanagerView/pattern_options">
         </div>
 
     </metal:block>
