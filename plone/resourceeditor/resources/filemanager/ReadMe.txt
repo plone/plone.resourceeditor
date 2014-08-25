@@ -13,7 +13,7 @@ You can place the FileManager anywhere within your web serving root directory.
 
 (3) Find the default configuration file for the connector you chose in Step 2 above, and follow the same procedure to configure the connector. For instance, the default configuration file for the PHP connector is located here:
     Currently, PHP and JSP connectors are available for Filemanager, but we are waiting for you contributions
-    
+
 [Path to FileManager]/connectors/php/filemanager.config.inc.default
 
 (4a) If you are integrating the FileManager with FCKEditor, open your fckconfig.js file and find the lines which specify what file browser to use for images, links, etc. Look toward the bottom of the file. You will need to change lines such as this:
@@ -77,7 +77,7 @@ Your script should include support for the following methods/functions. GET requ
 
 getinfo
 -------
-The getinfo method returns information about a single file. Requests with mode "getinfo" will include an additional parameter, "path", indicating which file to inspect. A boolean parameter "getsize" indicates whether the dimensions of the file (if an image) should be returned. 
+The getinfo method returns information about a single file. Requests with mode "getinfo" will include an additional parameter, "path", indicating which file to inspect. A boolean parameter "getsize" indicates whether the dimensions of the file (if an image) should be returned.
 
 Example Request:
 
@@ -91,11 +91,11 @@ Example Response:
 		"File Type": "png",
 		"Preview": "/UserFiles/Image/logo.png",
 		"Properties": {
-			"Date Created": null, 
-			"Date Modified": "02/09/2007 14:01:06", 
+			"Date Created": null,
+			"Date Modified": "02/09/2007 14:01:06",
 			"Height": 14,
 			"Width": 14,
-			"Size": 384 
+			"Size": 384
 		},
 		"Error": "",
 		"Code": 0
@@ -148,11 +148,11 @@ Example Response:
 			"File Type": "png",
 			"Preview": "/UserFiles/Image/logo.png",
 			"Properties": {
-				"Date Created": null, 
-				"Date Modified": "02/09/2007 14:01:06", 
+				"Date Created": null,
+				"Date Modified": "02/09/2007 14:01:06",
 				"Height": 14,
 				"Width": 14,
-				"Size": 384 
+				"Size": 384
 			},
 			"Error": "",
 			"Code": 0	
@@ -163,11 +163,11 @@ Example Response:
 			"File Type": "png",
 			"Preview": "/UserFiles/Image/icon.png",
 			"Properties": {
-				"Date Created": null, 
-				"Date Modified": "02/09/2007 14:01:06", 
+				"Date Created": null,
+				"Date Modified": "02/09/2007 14:01:06",
 				"Height": 14,
 				"Width": 14,
-				"Size": 384 
+				"Size": 384
 			},
 			"Error": "",
 			"Code": 0	
@@ -192,7 +192,7 @@ Example Response:
 	"Code": 0,
 	"Old Path": "/a_folder_renamed/thisisareallylongincrediblylongfilenamefortesting.txt",
 	"Old Name": "thisisareallylongincrediblylongfilenamefortesting.txt",
-	"New Path": "/a_folder_renamed/a_renamed_file", 
+	"New Path": "/a_folder_renamed/a_renamed_file",
 	"New Name": "a_renamed_file"
 }
 

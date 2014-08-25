@@ -38,17 +38,17 @@
 	/* No margin or border allowed */
 }
 
-/* 
+/*
  Splitter bar style; the .active class is added when the
  mouse is over the splitter or the splitter is focused
- via the keyboard taborder or an accessKey. 
+ via the keyboard taborder or an accessKey.
 */
 #splitter .vsplitbar {
 	width: 6px;
 	background: #ccc url(vgrabber.gif) no-repeat center;
 }
 /*
-#splitter .vsplitbar.active, 
+#splitter .vsplitbar.active,
 #splitter .vsplitbar:hover {
 	background: #e88 url(vgrabber.gif) no-repeat center;
 }

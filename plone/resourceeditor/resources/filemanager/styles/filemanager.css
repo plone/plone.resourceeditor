@@ -321,11 +321,11 @@ button.ON {
 	border: 1px inset #ccc;
 }
 
-#grid span { 
+#grid span {
 	background-image: url(../images/application_view_icons.png);
 }
 
-#list span { 
+#list span {
 	background-image: url(../images/application_view_list.png);
 }
 
