@@ -21,7 +21,7 @@
 
         <input tal:replace="structure authenticator" />
         <div class="pat-filemanager"
-            tal:attributes="data-pat-filemanager view/pattern_options|filemanagerView/pattern_options">
+            tal:attributes="data-pat-filemanager view/pattern_options">
         </div>
 
     </metal:block>

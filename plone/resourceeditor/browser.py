@@ -51,15 +51,14 @@ class FileManagerActions(BrowserView):
         return ext
 
     def getFile(self, path):
-        self.setup()
 
         path = path.encode('utf-8')
 
         path = self.normalizePath(path)
         file = self.context.context.unrestrictedTraverse(path)
-        ext = self.getExtension(path, file)
+        ext = self.getExtension(file)
         result = {'ext': ext}
-        if ext not in self.imageExtensions:
+        if ext not in FileManager.imageExtensions:
             result['contents'] = str(file.data)
         else:
             info = self.getInfo(path)
@@ -129,6 +128,13 @@ class FileManagerActions(BrowserView):
             'folder': False
         }
 
+    def saveFile(self, path, value):
+        path = path.lstrip('/').encode('utf-8')
+        value = value.replace('\r\n', '\n').encode('utf-8')
+        self.context.writeFile(path, value)
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({'success': 'save'})
+
     def __call__(self):
         action = self.request.get('action')
         if action == 'dataTree':
@@ -149,6 +155,14 @@ class FileManagerActions(BrowserView):
 
             return json.dumps(getDirectory(self.context))
 
+        if action == "getFile":
+            path = self.request.get("path", '')
+            return self.getFile(path)
+
+        if action == "saveFile":
+            path = self.request.get("path", '')
+            data = self.request.get("data", '')
+            return self.saveFile(path, data)
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
