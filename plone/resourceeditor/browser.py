@@ -36,6 +36,8 @@ def validateFilename(name):
 
 class FileManagerActions(BrowserView):
 
+    imageExtensions = ['png', 'gif', 'jpg', 'jpeg']
+
     @property.Lazy
     def resourceDirectory(self):
         return self.context
@@ -62,7 +64,7 @@ class FileManagerActions(BrowserView):
         file = self.context.context.unrestrictedTraverse(path)
         ext = self.getExtension(file)
         result = {'ext': ext}
-        if ext not in FileManager.imageExtensions:
+        if ext not in self.imageExtensions:
             result['contents'] = str(file.data)
         else:
             info = self.getInfo(path)
@@ -187,6 +189,47 @@ class FileManagerActions(BrowserView):
             'code': code,
             })
 
+    def addFile(self, path, name):
+        """Add a new empty file in the given directory
+        """
+        path = path.encode('utf-8')
+        name = name.encode('utf-8')
+
+        error = ''
+        code = 0
+
+        parentPath = self.normalizePath(path)
+        newPath = "%s/%s" % (parentPath, name,)
+
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            if not validateFilename(name):
+                error = translate(_(u'filemanager_invalid_filename',
+                                  default=u"Invalid file name."),
+                                  context=self.request)
+                code = 1
+            elif name in parent:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                code = 1
+            else:
+                self.resourceDirectory.writeFile(newPath, '')
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            "parent": self.normalizeReturnPath(parentPath),
+            "name": name,
+            "error": error,
+            "code": code,
+        })
+
     def __call__(self):
         action = self.request.get('action')
         if action == 'dataTree':
@@ -220,6 +263,11 @@ class FileManagerActions(BrowserView):
             path = self.request.get("path", '')
             name = self.request.get("name", '')
             return self.addFolder(path, name)
+
+        if action == "addFile":
+            path = self.request.get("path", '')
+            name = self.request.get("filename", '')
+            return self.addFile(path, name)
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
