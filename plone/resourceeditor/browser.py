@@ -230,6 +230,41 @@ class FileManagerActions(BrowserView):
             "code": code,
         })
 
+    def delete(self, path):
+        """Delete the item at the given path.
+        """
+
+        path = path.encode('utf-8')
+
+        npath = self.normalizePath(path)
+        parentPath = '/'.join(npath.split('/')[:-1])
+        name = npath.split('/')[-1]
+        code = 0
+        error = ''
+
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            try:
+                del parent[name]
+            except KeyError:
+                error = translate(_(u'filemanager_error_file_not_found',
+                                  default=u"File not found."),
+                                  context=self.request)
+                code = 1
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            'path': self.normalizeReturnPath(path),
+            'error': error,
+            'code': code,
+        })
+
     def renameFile(self, path, newName):
         """Rename the item at the given path to the new name
         """
@@ -314,6 +349,10 @@ class FileManagerActions(BrowserView):
             path = self.request.get("path", '')
             name = self.request.get("filename", '')
             return self.renameFile(path, name)
+
+        if action == "delete":
+            path = self.request.get("path", '')
+            return self.delete(path)
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
