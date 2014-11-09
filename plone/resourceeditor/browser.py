@@ -230,6 +230,47 @@ class FileManagerActions(BrowserView):
             "code": code,
         })
 
+    def renameFile(self, path, newName):
+        """Rename the item at the given path to the new name
+        """
+
+        path = path.encode('utf-8')
+        newName = newName.encode('utf-8')
+
+        npath = self.normalizePath(path)
+        oldPath = newPath = '/'.join(npath.split('/')[:-1])
+        oldName = npath.split('/')[-1]
+
+        code = 0
+        error = ''
+
+        try:
+            parent = self.getObject(oldPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            if newName != oldName:
+                if newName in parent:
+                    error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                    code = 1
+                else:
+                    parent.rename(oldName, newName)
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            "oldParent": self.normalizeReturnPath(oldPath),
+            "oldName": oldName,
+            "newParent": self.normalizeReturnPath(newPath),
+            "newName": newName,
+            'error': error,
+            'code': code,
+        })
+
     def __call__(self):
         action = self.request.get('action')
         if action == 'dataTree':
@@ -268,6 +309,11 @@ class FileManagerActions(BrowserView):
             path = self.request.get("path", '')
             name = self.request.get("filename", '')
             return self.addFile(path, name)
+
+        if action == "renameFile":
+            path = self.request.get("path", '')
+            name = self.request.get("filename", '')
+            return self.renameFile(path, name)
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
