@@ -90,7 +90,7 @@ class FileManagerActions(BrowserView):
     def parentPath(self, path):
         return '/'.join(path.split('/')[:-1])
 
-    def getInfo(self, obj):
+    def getInfo(self, obj, path='/'):
         """Returns information about a single file. Requests
         with mode "getinfo" will include an additional parameter, "path",
         indicating which file to inspect. A boolean parameter "getsize"
@@ -131,6 +131,7 @@ class FileManagerActions(BrowserView):
             'label': filename,
             'fileType': fileType,
             'properties': properties,
+            'path': path,
             'folder': False
         }
 
@@ -310,18 +311,20 @@ class FileManagerActions(BrowserView):
         action = self.request.get('action')
         if action == 'dataTree':
 
-            def getDirectory(folder):
+            def getDirectory(folder, relpath=''):
                 items = []
                 for name in folder.listDirectory():
                     obj = folder[name]
+                    path = relpath + '/' + name
                     if IResourceDirectory.providedBy(obj):
                         items.append({
                             'label': name,
                             'folder': True,
-                            'children': getDirectory(obj)
+                            'path': path,
+                            'children': getDirectory(obj, path)
                         })
                     else:
-                        items.append(self.getInfo(obj))
+                        items.append(self.getInfo(obj, path))
                 return items
 
             return json.dumps(getDirectory(self.context))
