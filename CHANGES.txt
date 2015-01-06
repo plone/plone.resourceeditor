@@ -1,10 +1,11 @@
 Changelog
 =========
 
-1.0.1 (unreleased)
+2.0a1 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- move to mockup based file manager
+  [vangheem]
 
 
 1.0 (2013-05-23)

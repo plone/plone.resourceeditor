@@ -3,6 +3,7 @@ import os.path
 import json
 
 from zope.component import queryMultiAdapter
+from zope.component.hooks import getSite
 from zope.publisher.browser import BrowserView
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
@@ -33,6 +34,329 @@ def validateFilename(name):
     return len([n for n in name if n in invalidFilenameChars]) == 0
 
 
+class FileManagerActions(BrowserView):
+
+    imageExtensions = ['png', 'gif', 'jpg', 'jpeg']
+
+    @property.Lazy
+    def resourceDirectory(self):
+        return self.context
+
+    def getObject(self, path):
+        path = self.normalizePath(path)
+        if not path:
+            return self.resourceDirectory
+        try:
+            return self.resourceDirectory[path]
+        except (KeyError, NotFound,):
+            raise KeyError(path)
+
+    def getExtension(self, obj):
+        basename, ext = os.path.splitext(obj.__name__)
+        ext = ext[1:].lower()
+        return ext
+
+    def getFile(self, path):
+
+        path = path.encode('utf-8')
+
+        path = self.normalizePath(path)
+        file = self.context.context.unrestrictedTraverse(path)
+        ext = self.getExtension(file)
+        result = {'ext': ext}
+        if ext not in self.imageExtensions:
+            result['contents'] = str(file.data)
+        else:
+            info = self.getInfo(path)
+            result['info'] = self.previewTemplate(info=info)
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps(result)
+
+    def normalizePath(self, path):
+        if path.startswith('/'):
+            path = path[1:]
+        if path.endswith('/'):
+            path = path[:-1]
+        return path
+
+    def normalizeReturnPath(self, path):
+        if path.endswith('/'):
+            path = path[:-1]
+        if not path.startswith('/'):
+            path = '/' + path
+        return path
+
+    def parentPath(self, path):
+        return '/'.join(path.split('/')[:-1])
+
+    def getInfo(self, obj, path='/'):
+        """Returns information about a single file. Requests
+        with mode "getinfo" will include an additional parameter, "path",
+        indicating which file to inspect. A boolean parameter "getsize"
+        indicates whether the dimensions of the file (if an image) should be
+        returned.
+        """
+
+        filename = obj.__name__
+
+        properties = {
+            'dateCreated': None,
+            'dateModified': None,
+        }
+
+        if isinstance(obj, File):
+            properties['dateCreated'] = obj.created().strftime('%c')
+            properties['dateModified'] = obj.modified().strftime('%c')
+            size = obj.get_size() / 1024
+            if size < 1024:
+                size_specifier = u'kb'
+            else:
+                size_specifier = u'mb'
+                size = size / 1024
+            properties['size'] = '%i%s' % (
+                size,
+                translate(_(u'filemanager_%s' % size_specifier,
+                            default=size_specifier), context=self.request)
+            )
+
+        fileType = self.getExtension(obj)
+
+        if isinstance(obj, Image):
+            properties['height'] = obj.height
+            properties['width'] = obj.width
+
+        return {
+            'filename': filename,
+            'label': filename,
+            'fileType': fileType,
+            'properties': properties,
+            'path': path,
+            'folder': False
+        }
+
+    def saveFile(self, path, value):
+        path = path.lstrip('/').encode('utf-8')
+        value = value.replace('\r\n', '\n').encode('utf-8')
+        self.context.writeFile(path, value)
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({'success': 'save'})
+
+    def addFolder(self, path, name):
+        """Create a new directory on the server within the given path.
+        """
+
+        path = path.encode('utf-8')
+        name = name.encode('utf-8')
+
+        code = 0
+        error = ''
+
+        parentPath = self.normalizePath(path)
+        parent = None
+
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            if not validateFilename(name):
+                error = translate(_(u'filemanager_invalid_foldername',
+                                  default=u"Invalid folder name."),
+                                  context=self.request)
+                code = 1
+            elif name in parent:
+                error = translate(_(u'filemanager_error_folder_exists',
+                                  default=u"Folder already exists."),
+                                  context=self.request)
+                code = 1
+            else:
+                try:
+                    parent.makeDirectory(name)
+                except UnicodeDecodeError:
+                    error = translate(_(u'filemanager_invalid_foldername',
+                                  default=u"Invalid folder name."),
+                                  context=self.request)
+                    code = 1
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            'parent': self.normalizeReturnPath(parentPath),
+            'name': name,
+            'error': error,
+            'code': code,
+            })
+
+    def addFile(self, path, name):
+        """Add a new empty file in the given directory
+        """
+        path = path.encode('utf-8')
+        name = name.encode('utf-8')
+
+        error = ''
+        code = 0
+
+        parentPath = self.normalizePath(path)
+        newPath = "%s/%s" % (parentPath, name,)
+
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            if not validateFilename(name):
+                error = translate(_(u'filemanager_invalid_filename',
+                                  default=u"Invalid file name."),
+                                  context=self.request)
+                code = 1
+            elif name in parent:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                code = 1
+            else:
+                self.resourceDirectory.writeFile(newPath, '')
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            "parent": self.normalizeReturnPath(parentPath),
+            "name": name,
+            "error": error,
+            "code": code,
+        })
+
+    def delete(self, path):
+        """Delete the item at the given path.
+        """
+
+        path = path.encode('utf-8')
+
+        npath = self.normalizePath(path)
+        parentPath = '/'.join(npath.split('/')[:-1])
+        name = npath.split('/')[-1]
+        code = 0
+        error = ''
+
+        try:
+            parent = self.getObject(parentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            try:
+                del parent[name]
+            except KeyError:
+                error = translate(_(u'filemanager_error_file_not_found',
+                                  default=u"File not found."),
+                                  context=self.request)
+                code = 1
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            'path': self.normalizeReturnPath(path),
+            'error': error,
+            'code': code,
+        })
+
+    def renameFile(self, path, newName):
+        """Rename the item at the given path to the new name
+        """
+
+        path = path.encode('utf-8')
+        newName = newName.encode('utf-8')
+
+        npath = self.normalizePath(path)
+        oldPath = newPath = '/'.join(npath.split('/')[:-1])
+        oldName = npath.split('/')[-1]
+
+        code = 0
+        error = ''
+
+        try:
+            parent = self.getObject(oldPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u"Parent folder not found."),
+                              context=self.request)
+            code = 1
+        else:
+            if newName != oldName:
+                if newName in parent:
+                    error = translate(_(u'filemanager_error_file_exists',
+                                  default=u"File already exists."),
+                                  context=self.request)
+                    code = 1
+                else:
+                    parent.rename(oldName, newName)
+
+        self.request.response.setHeader('Content-Type', 'application/json')
+        return json.dumps({
+            "oldParent": self.normalizeReturnPath(oldPath),
+            "oldName": oldName,
+            "newParent": self.normalizeReturnPath(newPath),
+            "newName": newName,
+            'error': error,
+            'code': code,
+        })
+
+    def __call__(self):
+        action = self.request.get('action')
+        if action == 'dataTree':
+
+            def getDirectory(folder, relpath=''):
+                items = []
+                for name in folder.listDirectory():
+                    obj = folder[name]
+                    path = relpath + '/' + name
+                    if IResourceDirectory.providedBy(obj):
+                        items.append({
+                            'label': name,
+                            'folder': True,
+                            'path': path,
+                            'children': getDirectory(obj, path)
+                        })
+                    else:
+                        items.append(self.getInfo(obj, path))
+                return items
+
+            return json.dumps(getDirectory(self.context))
+
+        if action == "getFile":
+            path = self.request.get("path", '')
+            return self.getFile(path)
+
+        if action == "saveFile":
+            path = self.request.get("path", '')
+            data = self.request.get("data", '')
+            return self.saveFile(path, data)
+
+        if action == "addFolder":
+            path = self.request.get("path", '')
+            name = self.request.get("name", '')
+            return self.addFolder(path, name)
+
+        if action == "addFile":
+            path = self.request.get("path", '')
+            name = self.request.get("filename", '')
+            return self.addFile(path, name)
+
+        if action == "renameFile":
+            path = self.request.get("path", '')
+            name = self.request.get("filename", '')
+            return self.renameFile(path, name)
+
+        if action == "delete":
+            path = self.request.get("path", '')
+            return self.delete(path)
+
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
     """
@@ -55,6 +379,18 @@ class FileManager(BrowserView):
         'addfolder', 'add', 'addnew',
         'rename', 'delete'
     )
+
+    def pattern_options(self):
+        site = getSite()
+        viewName = '@@plone.resourceeditor.filemanager-actions'
+        return json.dumps({
+            'actionUrl': '%s/++%s++%s/%s' % (
+                site.absolute_url(),
+                self.context.__parent__.__parent__.__name__,
+                self.context.__name__,
+                viewName
+            )
+        })
 
     def __call__(self):
         # make sure theme is disable for these requests
@@ -278,7 +614,7 @@ var BASE_URL = '%s';
                                                              self.staticFiles,
                                                              fileType)
 
-        if getSize and isinstance(obj, Image):
+        if isinstance(obj, Image):
             properties['height'] = obj.height
             properties['width'] = obj.width
 

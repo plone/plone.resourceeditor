@@ -1,6 +1,7 @@
 <configure
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
+    xmlns:zcml="http://namespaces.zope.org/zcml"
     i18n_domain="plone">
 
     <include package="plone.resource" />
@@ -13,6 +14,13 @@
     <browser:resourceDirectory
         name="plone.resourceeditor"
         directory="resources"
+        />
+
+    <browser:page
+        name="plone.resourceeditor.filemanager-actions"
+        for="plone.resource.interfaces.IResourceDirectory"
+        class=".browser.FileManagerActions"
+        permission="plone.resourceeditor.ManageSources"
         />
 
     <browser:page
@@ -46,5 +54,56 @@
         attribute="filetree"
         permission="plone.resourceeditor.ManageSources"
         />
+
+  <browser:resource
+    name="plone.resourceeditor-filemanager-bootstrap-glyphicons-halflings-regular.eot"
+    file="resources/filemanager-bootstrap-glyphicons-halflings-regular.eot"
+    />
+  <browser:resource
+    name="plone.resourceeditor-filemanager-bootstrap-glyphicons-halflings-regular.svg"
+    file="resources/filemanager-bootstrap-glyphicons-halflings-regular.svg"
+    />
+  <browser:resource
+    name="plone.resourceeditor-filemanager-bootstrap-glyphicons-halflings-regular.ttf"
+    file="resources/filemanager-bootstrap-glyphicons-halflings-regular.ttf"
+    />
+  <browser:resource
+    name="plone.resourceeditor-filemanager-bootstrap-glyphicons-halflings-regular.woff"
+    file="resources/filemanager-bootstrap-glyphicons-halflings-regular.woff"
+    />
+  <browser:resource
+    name="plone.resourceeditor-filemanager-dropzone-spritemap@2x.png"
+    file="resources/filemanager-dropzone-spritemap@2x.png"
+    />
+  <browser:resource
+    name="plone.resourceeditor-filemanager-dropzone-spritemap.png"
+    file="resources/filemanager-dropzone-spritemap.png"
+    />
+  <browser:resource
+    name="plone.resourceeditor-filemanager-jqtree-jqtree-circle.png"
+    file="resources/filemanager-jqtree-jqtree-circle.png"
+    />
+
+    <configure zcml:condition="installed mockup">
+        <browser:resource
+          name="plone.resourceeditor-filemanager.js"
+          file="resources/filemanager.js"
+          />
+        <browser:resource
+          name="plone.resourceeditor-filemanager.css"
+          file="resources/filemanager.min.css"
+          />
+    </configure>
+
+    <configure zcml:condition="not-installed mockup">
+        <browser:resource
+          name="plone.resourceeditor-filemanager.js"
+          file="resources/filemanager.min.js"
+          />
+        <browser:resource
+          name="plone.resourceeditor-filemanager.css"
+          file="resources/filemanager.min.css"
+          />
+    </configure>
 
 </configure>
