@@ -51,8 +51,10 @@ class FileManagerActions(BrowserView):
         except (KeyError, NotFound,):
             raise KeyError(path)
 
-    def getExtension(self, obj):
-        basename, ext = os.path.splitext(obj.__name__)
+    def getExtension(self, obj=None, path=None):
+        if not path:
+            path = obj.__name__
+        basename, ext = os.path.splitext(path)
         ext = ext[1:].lower()
         return ext
 
@@ -61,11 +63,13 @@ class FileManagerActions(BrowserView):
         path = path.encode('utf-8')
 
         path = self.normalizePath(path)
-        file = self.context.context.unrestrictedTraverse(path)
-        ext = self.getExtension(file)
+        ext = self.getExtension(path=path)
         result = {'ext': ext}
         if ext not in self.imageExtensions:
-            result['contents'] = str(file.data)
+            data = self.context.openFile(path)
+            if hasattr(data, 'read'):
+                data = data.read()
+            result['contents'] = str(data)
         else:
             info = self.getInfo(path)
             result['info'] = self.previewTemplate(info=info)
