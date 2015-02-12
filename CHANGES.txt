@@ -1,10 +1,10 @@
 Changelog
 =========
 
-2.0a1 (unreleased)
+2.0.0 (unreleased)
 ------------------
 
-- move to mockup based file manager
+- move to mockup based file manager. Plone 5 only here.
   [vangheem]
 
 

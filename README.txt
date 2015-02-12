@@ -19,3 +19,9 @@ In both of these cases, ``resourceDirectory`` should be an in-ZODB
 ``plone.resource`` resource directory instance.
 
 The macros assume that jQuery is already loaded.
+
+
+Versions
+========
+
+2.x is for Plone 5.0 and up.
