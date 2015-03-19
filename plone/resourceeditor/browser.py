@@ -74,7 +74,7 @@ class FileManagerActions(BrowserView):
         else:
             obj = self.getObject(path)
             info = self.getInfo(obj)
-            info['preview'] = info['filename']
+            info['preview'] = path
             result['info'] = self.previewTemplate(info=info)
 
         self.request.response.setHeader('Content-Type', 'application/json')
