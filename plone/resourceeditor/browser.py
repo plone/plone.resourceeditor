@@ -36,7 +36,8 @@ def validateFilename(name):
 
 class FileManagerActions(BrowserView):
 
-    imageExtensions = ['png', 'gif', 'jpg', 'jpeg']
+    imageExtensions = ['png', 'gif', 'jpg', 'jpeg', 'ico']
+    previewTemplate = ViewPageTemplateFile('preview.pt')
 
     @property.Lazy
     def resourceDirectory(self):
@@ -71,7 +72,9 @@ class FileManagerActions(BrowserView):
                 data = data.read()
             result['contents'] = str(data)
         else:
-            info = self.getInfo(path)
+            obj = self.getObject(path)
+            info = self.getInfo(obj)
+            info['preview'] = info['filename']
             result['info'] = self.previewTemplate(info=info)
 
         self.request.response.setHeader('Content-Type', 'application/json')
