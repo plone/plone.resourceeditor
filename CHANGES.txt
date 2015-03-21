@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.0.0 (unreleased)
+2.0.0 (2015-03-21)
 ------------------
 
 - move to mockup based file manager. Plone 5 only here.
