@@ -66,15 +66,22 @@ class FileManagerActions(BrowserView):
         path = self.normalizePath(path)
         ext = self.getExtension(path=path)
         result = {'ext': ext}
-        if ext not in self.imageExtensions:
+
+        if ext in FileManager.knownExtensions:
             data = self.context.openFile(path)
             if hasattr(data, 'read'):
                 data = data.read()
+
             result['contents'] = str(data)
-        else:
+        elif ext in self.imageExtensions:
             obj = self.getObject(path)
             info = self.getInfo(obj)
             info['preview'] = path
+
+            result['info'] = self.previewTemplate(info=info)
+        else:
+            obj = self.getObject(path)
+            info = self.getInfo(obj)
             result['info'] = self.previewTemplate(info=info)
 
         self.request.response.setHeader('Content-Type', 'application/json')
@@ -144,8 +151,9 @@ class FileManagerActions(BrowserView):
 
     def saveFile(self, path, value):
         path = path.lstrip('/').encode('utf-8')
-        value = value.replace('\r\n', '\n').encode('utf-8')
-        self.context.writeFile(path, value)
+        value = unicode(value.strip(), 'utf-8')
+        value = value.replace('\r\n', '\n')
+        self.context.writeFile(path, value.encode('utf-8'))
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'success': 'save'})
 
@@ -371,7 +379,7 @@ class FileManager(BrowserView):
     previewTemplate = ViewPageTemplateFile('preview.pt')
     staticFiles = "++resource++plone.resourceeditor/filemanager"
     imageExtensions = ['png', 'gif', 'jpg', 'jpeg']
-    knownExtensions = ['css', 'html', 'htm', 'txt', 'xml', 'js', 'cfg']
+    knownExtensions = ['css', 'less', 'html', 'htm', 'txt', 'xml', 'js', 'cfg']
     capabilities = ['download', 'rename', 'delete']
 
     extensionsWithIcons = frozenset([
