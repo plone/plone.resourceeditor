@@ -385,7 +385,7 @@ class FileManager(BrowserView):
     previewTemplate = ViewPageTemplateFile('preview.pt')
     staticFiles = "++resource++plone.resourceeditor/filemanager"
     imageExtensions = ['png', 'gif', 'jpg', 'jpeg']
-    knownExtensions = ['css', 'less', 'html', 'htm', 'txt', 'xml', 'js', 'cfg']
+    knownExtensions = ['css', 'html', 'htm', 'txt', 'xml', 'js', 'cfg']
     capabilities = ['download', 'rename', 'delete']
 
     extensionsWithIcons = frozenset([
