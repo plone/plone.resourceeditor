@@ -66,26 +66,32 @@ class FileManagerActions(BrowserView):
         path = self.normalizePath(path)
         ext = self.getExtension(path=path)
         result = {'ext': ext}
+        self.request.response.setHeader('Content-Type', 'application/json')
 
-        if ext in FileManager.knownExtensions:
-            data = self.context.openFile(path)
-            if hasattr(data, 'read'):
-                data = data.read()
-
-            result['contents'] = str(data)
-        elif ext in self.imageExtensions:
+        if ext in self.imageExtensions:
             obj = self.getObject(path)
             info = self.getInfo(obj)
             info['preview'] = path
 
             result['info'] = self.previewTemplate(info=info)
+            return json.dumps(result)
         else:
-            obj = self.getObject(path)
-            info = self.getInfo(obj)
-            result['info'] = self.previewTemplate(info=info)
+            data = self.context.openFile(path)
+            if hasattr(data, 'read'):
+                data = data.read()
 
-        self.request.response.setHeader('Content-Type', 'application/json')
-        return json.dumps(result)
+                result['contents'] = str(data)
+                try:
+                    return json.dumps(result)
+                except UnicodeDecodeError:
+                    #The file we're trying to get isn't unicode encodable
+                    #so we just return the file information, not the content
+                    del result['contents']
+                    obj = self.getObject(path)
+                    info = self.getInfo(obj)
+                    result['info'] = self.previewTemplate(info=info)
+               
+                    return json.dumps(result)
 
     def normalizePath(self, path):
         if path.startswith('/'):
