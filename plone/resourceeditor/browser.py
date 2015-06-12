@@ -10,6 +10,7 @@ from zope.i18nmessageid import MessageFactory
 from zope.cachedescriptors import property
 
 from plone.resource.interfaces import IResourceDirectory
+from plone.resource.file import FilesystemFile
 
 from AccessControl import Unauthorized
 from zExceptions import NotFound
@@ -72,7 +73,10 @@ class FileManagerActions(BrowserView):
             obj = self.getObject(path)
             info = self.getInfo(obj)
             info['preview'] = path
-
+            if( isinstance(obj, FilesystemFile) ):
+                info['showInfo'] = False
+            else:
+                info['showInfo'] = True
             result['info'] = self.previewTemplate(info=info)
             return json.dumps(result)
         else:

@@ -6,7 +6,7 @@
      class="info" tal:define="info options/info;
                               props info/properties;">
     <img src="" tal:attributes="src info/preview" tal:condition="exists:info/preview" />
-    <p class="discreet details">
+    <p tal:condition="info/showInfo" class="discreet details">
         <b i18n:translate="file_preview_date_created">Date Created</b>: <span tal:replace="props/dateCreated" />
         <br/>
         <b i18n:translate="file_preview_date_modified">Date Modified</b>: <span tal:replace="props/dateModified" />
