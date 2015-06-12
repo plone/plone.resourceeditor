@@ -73,10 +73,6 @@ class FileManagerActions(BrowserView):
             obj = self.getObject(path)
             info = self.getInfo(obj)
             info['preview'] = path
-            if( isinstance(obj, FilesystemFile) ):
-                info['showInfo'] = False
-            else:
-                info['showInfo'] = True
             result['info'] = self.previewTemplate(info=info)
             return json.dumps(result)
         else:
@@ -154,6 +150,7 @@ class FileManagerActions(BrowserView):
             'filename': filename,
             'label': filename,
             'fileType': fileType,
+            'filesystem': isinstance(obj, FilesystemFile),
             'properties': properties,
             'path': path,
             'folder': False
