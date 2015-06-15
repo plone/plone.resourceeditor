@@ -2,6 +2,7 @@ import urllib
 import os.path
 import json
 
+from time import localtime, strftime
 from zope.component import queryMultiAdapter
 from zope.component.hooks import getSite
 from zope.publisher.browser import BrowserView
@@ -10,6 +11,7 @@ from zope.i18nmessageid import MessageFactory
 from zope.cachedescriptors import property
 
 from plone.resource.interfaces import IResourceDirectory
+from plone.resource.file import FilesystemFile
 
 from AccessControl import Unauthorized
 from zExceptions import NotFound
@@ -66,19 +68,31 @@ class FileManagerActions(BrowserView):
         path = self.normalizePath(path)
         ext = self.getExtension(path=path)
         result = {'ext': ext}
-        if ext not in self.imageExtensions:
-            data = self.context.openFile(path)
-            if hasattr(data, 'read'):
-                data = data.read()
-            result['contents'] = str(data)
-        else:
+        self.request.response.setHeader('Content-Type', 'application/json')
+
+        if ext in self.imageExtensions:
             obj = self.getObject(path)
             info = self.getInfo(obj)
             info['preview'] = path
             result['info'] = self.previewTemplate(info=info)
+            return json.dumps(result)
+        else:
+            data = self.context.openFile(path)
+            if hasattr(data, 'read'):
+                data = data.read()
 
-        self.request.response.setHeader('Content-Type', 'application/json')
-        return json.dumps(result)
+                result['contents'] = str(data)
+                try:
+                    return json.dumps(result)
+                except UnicodeDecodeError:
+                    #The file we're trying to get isn't unicode encodable
+                    #so we just return the file information, not the content
+                    del result['contents']
+                    obj = self.getObject(path)
+                    info = self.getInfo(obj)
+                    result['info'] = self.previewTemplate(info=info)
+               
+                    return json.dumps(result)
 
     def normalizePath(self, path):
         if path.startswith('/'):
@@ -112,22 +126,32 @@ class FileManagerActions(BrowserView):
             'dateModified': None,
         }
 
+        size = 0
+
         if isinstance(obj, File):
             properties['dateCreated'] = obj.created().strftime('%c')
             properties['dateModified'] = obj.modified().strftime('%c')
             size = obj.get_size() / 1024
-            if size < 1024:
-                size_specifier = u'kb'
-            else:
-                size_specifier = u'mb'
-                size = size / 1024
-            properties['size'] = '%i%s' % (
-                size,
-                translate(_(u'filemanager_%s' % size_specifier,
-                            default=size_specifier), context=self.request)
-            )
 
         fileType = self.getExtension(obj)
+        if isinstance(obj, FilesystemFile):
+            stats = os.stat(obj.path)
+            created = localtime(stats.st_ctime)
+            modified = localtime(stats.st_mtime)
+            properties['dateCreated'] = strftime('%c', created)
+            properties['dateModified'] = strftime('%c', modified)
+            size = stats.st_size / 1024
+
+        if size < 1024:
+            size_specifier = u'kb'
+        else:
+            size_specifier = u'mb'
+            size = size / 1024
+        properties['size'] = '%i%s' % (
+            size,
+            translate(_(u'filemanager_%s' % size_specifier,
+                        default=size_specifier), context=self.request)
+        )
 
         if isinstance(obj, Image):
             properties['height'] = obj.height
@@ -137,6 +161,7 @@ class FileManagerActions(BrowserView):
             'filename': filename,
             'label': filename,
             'fileType': fileType,
+            'filesystem': isinstance(obj, FilesystemFile),
             'properties': properties,
             'path': path,
             'folder': False
@@ -144,8 +169,9 @@ class FileManagerActions(BrowserView):
 
     def saveFile(self, path, value):
         path = path.lstrip('/').encode('utf-8')
-        value = value.replace('\r\n', '\n').encode('utf-8')
-        self.context.writeFile(path, value)
+        value = unicode(value.strip(), 'utf-8')
+        value = value.replace('\r\n', '\n')
+        self.context.writeFile(path, value.encode('utf-8'))
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'success': 'save'})
 
