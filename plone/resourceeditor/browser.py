@@ -2,6 +2,7 @@ import urllib
 import os.path
 import json
 
+from time import localtime, strftime
 from zope.component import queryMultiAdapter
 from zope.component.hooks import getSite
 from zope.publisher.browser import BrowserView
@@ -125,22 +126,32 @@ class FileManagerActions(BrowserView):
             'dateModified': None,
         }
 
+        size = 0
+
         if isinstance(obj, File):
             properties['dateCreated'] = obj.created().strftime('%c')
             properties['dateModified'] = obj.modified().strftime('%c')
             size = obj.get_size() / 1024
-            if size < 1024:
-                size_specifier = u'kb'
-            else:
-                size_specifier = u'mb'
-                size = size / 1024
-            properties['size'] = '%i%s' % (
-                size,
-                translate(_(u'filemanager_%s' % size_specifier,
-                            default=size_specifier), context=self.request)
-            )
 
         fileType = self.getExtension(obj)
+        if isinstance(obj, FilesystemFile):
+            stats = os.stat(obj.path)
+            created = localtime(stats.st_ctime)
+            modified = localtime(stats.st_mtime)
+            properties['dateCreated'] = strftime('%c', created)
+            properties['dateModified'] = strftime('%c', modified)
+            size = stats.st_size / 1024
+
+        if size < 1024:
+            size_specifier = u'kb'
+        else:
+            size_specifier = u'mb'
+            size = size / 1024
+        properties['size'] = '%i%s' % (
+            size,
+            translate(_(u'filemanager_%s' % size_specifier,
+                        default=size_specifier), context=self.request)
+        )
 
         if isinstance(obj, Image):
             properties['height'] = obj.height
