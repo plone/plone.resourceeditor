@@ -4,8 +4,9 @@ Changelog
 2.0.1 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Fixed issue with ascii encoding [obct537]
+- now properly serves filesystem files to the thememapper 
+  [obct537]
 
 2.0.0 (2015-03-21)
 ------------------
