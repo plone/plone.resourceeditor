@@ -7,6 +7,8 @@ Changelog
 - Fixed issue with ascii encoding [obct537]
 - now properly serves filesystem files to the thememapper 
   [obct537]
+- resourceeditor will now register non-standard mimetypes 
+  in the python mimetype module [obct537]
 
 2.0.0 (2015-03-21)
 ------------------
