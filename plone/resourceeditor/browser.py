@@ -1,7 +1,10 @@
 import urllib
 import os.path
 import json
+import re
+import posixpath
 
+from urlparse import urlparse
 from time import localtime, strftime
 from zope.component import queryMultiAdapter
 from zope.component.hooks import getSite
@@ -171,6 +174,23 @@ class FileManagerActions(BrowserView):
         path = path.lstrip('/').encode('utf-8')
         value = unicode(value.strip(), 'utf-8')
         value = value.replace('\r\n', '\n')
+        
+        if self.request.form['relativeUrls'] == 'true':
+            reg = re.compile('url\(([^)]+)\)')
+            urls = reg.findall(value)
+            
+            location = self.request.URL[0:self.request.URL.find('@@')]
+            base = urlparse(location)
+            for url in urls:
+                asset = urlparse(url.strip("'").strip('"'))
+                if base.netloc != asset.netloc:
+                    continue
+                
+                base_dir = '.' + posixpath.dirname(base.path)
+                target = '.' + asset.path
+                out = posixpath.relpath(target, start=base_dir)
+                value = value.replace(url.strip('"').strip("'"), out)
+        
         self.context.writeFile(path, value.encode('utf-8'))
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'success': 'save'})
@@ -996,6 +1016,7 @@ var BASE_URL = '%s';
     def saveFile(self, path, value):
         processInputs(self.request)
 
+        import pdb; pdb.set_trace()
         path = self.request.form.get('path', path)
         value = self.request.form.get('value', value)
 
