@@ -179,7 +179,7 @@ class FileManagerActions(BrowserView):
             reg = re.compile('url\(([^)]+)\)')
             urls = reg.findall(value)
             
-            location = self.request.URL[0:self.request.URL.find('@@')]
+            location = self.request.URL[0:self.request.URL.find('@@plone.resourceeditor')]
             base = urlparse(location)
             for url in urls:
                 asset = urlparse(url.strip("'").strip('"'))
