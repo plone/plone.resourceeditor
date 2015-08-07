@@ -175,7 +175,7 @@ class FileManagerActions(BrowserView):
         value = unicode(value.strip(), 'utf-8')
         value = value.replace('\r\n', '\n')
         
-        if self.request.form['relativeUrls'] == 'true':
+        if 'relativeUrls' in self.request.form:
             reg = re.compile('url\(([^)]+)\)')
             urls = reg.findall(value)
             
