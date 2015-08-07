@@ -179,6 +179,7 @@ class FileManagerActions(BrowserView):
             reg = re.compile('url\(([^)]+)\)')
             urls = reg.findall(value)
             
+            #Trim off the @@plone.resourceeditor bit to just give us the theme url
             location = self.request.URL[0:self.request.URL.find('@@plone.resourceeditor')]
             base = urlparse(location)
             for url in urls:
