@@ -1016,7 +1016,6 @@ var BASE_URL = '%s';
     def saveFile(self, path, value):
         processInputs(self.request)
 
-        import pdb; pdb.set_trace()
         path = self.request.form.get('path', path)
         value = self.request.form.get('value', value)
 
