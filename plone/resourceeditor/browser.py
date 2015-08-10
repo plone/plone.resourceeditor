@@ -1,7 +1,10 @@
 import urllib
 import os.path
 import json
+import re
+import posixpath
 
+from urlparse import urlparse
 from time import localtime, strftime
 from zope.component import queryMultiAdapter
 from zope.component.hooks import getSite
@@ -171,6 +174,24 @@ class FileManagerActions(BrowserView):
         path = path.lstrip('/').encode('utf-8')
         value = unicode(value.strip(), 'utf-8')
         value = value.replace('\r\n', '\n')
+        
+        if 'relativeUrls' in self.request.form:
+            reg = re.compile('url\(([^)]+)\)')
+            urls = reg.findall(value)
+            
+            #Trim off the @@plone.resourceeditor bit to just give us the theme url
+            location = self.request.URL[0:self.request.URL.find('@@plone.resourceeditor')]
+            base = urlparse(location)
+            for url in urls:
+                asset = urlparse(url.strip("'").strip('"'))
+                if base.netloc != asset.netloc:
+                    continue
+                
+                base_dir = '.' + posixpath.dirname(base.path)
+                target = '.' + asset.path
+                out = posixpath.relpath(target, start=base_dir)
+                value = value.replace(url.strip('"').strip("'"), out)
+        
         self.context.writeFile(path, value.encode('utf-8'))
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'success': 'save'})
