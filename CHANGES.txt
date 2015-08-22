@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.0.1 (unreleased)
+2.0.1 (2015-08-22)
 ------------------
 
 - Added ability to convert absolute to relative urls
