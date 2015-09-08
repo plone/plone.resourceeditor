@@ -1,7 +1,7 @@
 Changelog
 =========
 
-2.0.2 (unreleased)
+2.0.2 (2015-09-08)
 ------------------
 
 - Added check to prevent overwritting folders when saving
