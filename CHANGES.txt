@@ -4,8 +4,8 @@ Changelog
 2.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
-
+- Added check to prevent overwritting folders when saving
+  [obct537]
 
 2.0.1 (2015-08-22)
 ------------------
