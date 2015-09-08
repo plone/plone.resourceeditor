@@ -174,7 +174,10 @@ class FileManagerActions(BrowserView):
         path = path.lstrip('/').encode('utf-8')
         value = unicode(value.strip(), 'utf-8')
         value = value.replace('\r\n', '\n')
-        
+
+        if IResourceDirectory.providedBy(self.context[path]):
+           return json.dumps({'error': 'invalid path'})
+
         if 'relativeUrls' in self.request.form:
             reg = re.compile('url\(([^)]+)\)')
             urls = reg.findall(value)
