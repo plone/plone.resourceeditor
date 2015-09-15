@@ -122,15 +122,13 @@ class FileManagerActions(BrowserView):
         filename = obj.__name__
 
         properties = {
-            'dateCreated': None,
             'dateModified': None,
         }
 
         size = 0
 
         if isinstance(obj, File):
-            properties['dateCreated'] = obj.created().strftime('%c')
-            properties['dateModified'] = obj.modified().strftime('%c')
+            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')
             size = obj.get_size() / 1024
 
         fileType = self.getExtension(obj)
@@ -138,7 +136,6 @@ class FileManagerActions(BrowserView):
             stats = os.stat(obj.path)
             created = localtime(stats.st_ctime)
             modified = localtime(stats.st_mtime)
-            properties['dateCreated'] = strftime('%c', created)
             properties['dateModified'] = strftime('%c', modified)
             size = stats.st_size / 1024
 
@@ -633,13 +630,11 @@ var BASE_URL = '%s';
         errorCode = 0
 
         properties = {
-            'dateCreated': None,
             'dateModified': None,
         }
 
         if isinstance(obj, File):
-            properties['dateCreated'] = obj.created().strftime('%c')
-            properties['dateModified'] = obj.modified().strftime('%c')
+            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')
             size = obj.get_size() / 1024
             if size < 1024:
                 size_specifier = u'kb'
