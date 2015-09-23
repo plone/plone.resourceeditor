@@ -4,7 +4,8 @@ Changelog
 2.0.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- handle NotFound errors while generating file/folder listings
+  [vangheem]
 
 
 2.0.2 (2015-09-08)

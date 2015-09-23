@@ -1,27 +1,25 @@
-import urllib
-import os.path
 import json
+import os.path
 import re
-import posixpath
-
-from urlparse import urlparse
 from time import localtime, strftime
-from zope.component import queryMultiAdapter
-from zope.component.hooks import getSite
-from zope.publisher.browser import BrowserView
-from zope.i18n import translate
-from zope.i18nmessageid import MessageFactory
-from zope.cachedescriptors import property
-
-from plone.resource.interfaces import IResourceDirectory
-from plone.resource.file import FilesystemFile
+import urllib
+from urlparse import urlparse
 
 from AccessControl import Unauthorized
-from zExceptions import NotFound
 from OFS.Image import File, Image
+from Products.CMFCore.utils import getToolByName
 from Products.Five.browser.decode import processInputs
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from Products.CMFCore.utils import getToolByName
+from plone.resource.file import FilesystemFile
+from plone.resource.interfaces import IResourceDirectory
+import posixpath
+from zExceptions import NotFound
+from zope.cachedescriptors import property
+from zope.component import queryMultiAdapter
+from zope.component.hooks import getSite
+from zope.i18n import translate
+from zope.i18nmessageid import MessageFactory
+from zope.publisher.browser import BrowserView
 
 _ = MessageFactory(u"plone")
 
@@ -88,13 +86,12 @@ class FileManagerActions(BrowserView):
                 try:
                     return json.dumps(result)
                 except UnicodeDecodeError:
-                    #The file we're trying to get isn't unicode encodable
-                    #so we just return the file information, not the content
+                    # The file we're trying to get isn't unicode encodable
+                    # so we just return the file information, not the content
                     del result['contents']
                     obj = self.getObject(path)
                     info = self.getInfo(obj)
                     result['info'] = self.previewTemplate(info=info)
-               
                     return json.dumps(result)
 
     def normalizePath(self, path):
@@ -176,25 +173,25 @@ class FileManagerActions(BrowserView):
         value = value.replace('\r\n', '\n')
 
         if IResourceDirectory.providedBy(self.context[path]):
-           return json.dumps({'error': 'invalid path'})
+            return json.dumps({'error': 'invalid path'})
 
         if 'relativeUrls' in self.request.form:
             reg = re.compile('url\(([^)]+)\)')
             urls = reg.findall(value)
-            
-            #Trim off the @@plone.resourceeditor bit to just give us the theme url
+
+            # Trim off the @@plone.resourceeditor bit to just give us the theme url
             location = self.request.URL[0:self.request.URL.find('@@plone.resourceeditor')]
             base = urlparse(location)
             for url in urls:
                 asset = urlparse(url.strip("'").strip('"'))
                 if base.netloc != asset.netloc:
                     continue
-                
+
                 base_dir = '.' + posixpath.dirname(base.path)
                 target = '.' + asset.path
                 out = posixpath.relpath(target, start=base_dir)
                 value = value.replace(url.strip('"').strip("'"), out)
-        
+
         self.context.writeFile(path, value.encode('utf-8'))
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({'success': 'save'})
@@ -234,9 +231,9 @@ class FileManagerActions(BrowserView):
                 try:
                     parent.makeDirectory(name)
                 except UnicodeDecodeError:
-                    error = translate(_(u'filemanager_invalid_foldername',
-                                  default=u"Invalid folder name."),
-                                  context=self.request)
+                    error = translate(
+                        _(u'filemanager_invalid_foldername',
+                          default=u"Invalid folder name."), context=self.request)
                     code = 1
 
         self.request.response.setHeader('Content-Type', 'application/json')
@@ -347,9 +344,9 @@ class FileManagerActions(BrowserView):
         else:
             if newName != oldName:
                 if newName in parent:
-                    error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
-                                  context=self.request)
+                    error = translate(
+                        _(u'filemanager_error_file_exists',
+                          default=u"File already exists."), context=self.request)
                     code = 1
                 else:
                     parent.rename(oldName, newName)
@@ -374,11 +371,15 @@ class FileManagerActions(BrowserView):
                     obj = folder[name]
                     path = relpath + '/' + name
                     if IResourceDirectory.providedBy(obj):
+                        try:
+                            children = getDirectory(obj, path)
+                        except NotFound:
+                            children = []
                         items.append({
                             'label': name,
                             'folder': True,
                             'path': path,
-                            'children': getDirectory(obj, path)
+                            'children': children
                         })
                     else:
                         items.append(self.getInfo(obj, path))
@@ -542,7 +543,7 @@ class FileManager(BrowserView):
     @property.Lazy
     def baseUrl(self):
         return "%s/++%s++%s" % (self.portalUrl, self.resourceType,
-                                   self.resourceDirectory.__name__)
+                                self.resourceDirectory.__name__)
 
     @property.Lazy
     def fileConnector(self):
@@ -556,10 +557,11 @@ var IMAGES_EXT = %s;
 var CAPABILITIES = %s;
 var FILE_CONNECTOR = '%s';
 var BASE_URL = '%s';
-""" % (repr(self.imageExtensions),
-       repr(self.capabilities),
-       self.fileConnector,
-       self.baseUrl,)
+""" % (
+            repr(self.imageExtensions),
+            repr(self.capabilities),
+            self.fileConnector,
+            self.baseUrl,)
 
     def normalizePath(self, path):
         if path.startswith('/'):
@@ -644,8 +646,10 @@ var BASE_URL = '%s';
             else:
                 size_specifier = u'mb'
                 size = size / 1024
-            properties['size'] = '%i%s' % (size,
-                translate(_(u'filemanager_%s' % size_specifier, default=size_specifier), context=self.request)
+            properties['size'] = '%i%s' % (
+                size,
+                translate(_(u'filemanager_%s' % size_specifier,
+                            default=size_specifier), context=self.request)
                 )
 
         fileType = 'txt'
@@ -720,9 +724,9 @@ var BASE_URL = '%s';
                 try:
                     parent.makeDirectory(name)
                 except UnicodeDecodeError:
-                    error = translate(_(u'filemanager_invalid_foldername',
-                                  default=u"Invalid folder name."),
-                                  context=self.request)
+                    error = translate(
+                        _(u'filemanager_invalid_foldername',
+                          default=u"Invalid folder name."), context=self.request)
                     code = 1
 
         return {
@@ -744,7 +748,7 @@ var BASE_URL = '%s';
         """
 
         path = path.encode('utf-8')
-        if replacepath != None:
+        if replacepath is not None:
             replacepath = replacepath.encode('utf-8')
 
         parentPath = self.normalizePath(path)
@@ -857,9 +861,10 @@ var BASE_URL = '%s';
         else:
             if newName != oldName:
                 if newName in parent:
-                    error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
-                                  context=self.request)
+                    error = translate(
+                        _(u'filemanager_error_file_exists',
+                          default=u"File already exists."),
+                        context=self.request)
                     code = 1
                 else:
                     parent.rename(oldName, newName)
