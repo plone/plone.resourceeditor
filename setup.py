@@ -4,7 +4,7 @@ version = '2.0.4.dev0'
 
 setup(name='plone.resourceeditor',
       version=version,
-      description="",
+      description="Integrates ACE editor into Plone",
       long_description=open("README.txt").read() + "\n" +
                        open("CHANGES.txt").read(),
       classifiers=[
