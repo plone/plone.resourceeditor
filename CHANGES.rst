@@ -4,6 +4,9 @@ Changelog
 2.0.4 (unreleased)
 ------------------
 
+- Minor cleanup (pep8, readability, ReST)
+  [jensens]
+
 - Fixed problem causing file timestamps to show up incorrectly
   [obct537]
 
