@@ -1,25 +1,25 @@
-import json
-import os.path
-import re
-from time import localtime, strftime
-import urllib
-from urlparse import urlparse
-
+# -*- coding: utf-8 -*-
 from AccessControl import Unauthorized
 from OFS.Image import File, Image
+from plone.resource.file import FilesystemFile
+from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser.decode import processInputs
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from plone.resource.file import FilesystemFile
-from plone.resource.interfaces import IResourceDirectory
-import posixpath
+from time import localtime, strftime
+from urlparse import urlparse
 from zExceptions import NotFound
-from zope.cachedescriptors import property
+from zope.cachedescriptors import property as zproperty
 from zope.component import queryMultiAdapter
 from zope.component.hooks import getSite
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
 from zope.publisher.browser import BrowserView
+import json
+import os.path
+import posixpath
+import re
+import urllib
 
 _ = MessageFactory(u"plone")
 
@@ -42,7 +42,7 @@ class FileManagerActions(BrowserView):
     imageExtensions = ['png', 'gif', 'jpg', 'jpeg', 'ico']
     previewTemplate = ViewPageTemplateFile('preview.pt')
 
-    @property.Lazy
+    @zproperty.Lazy
     def resourceDirectory(self):
         return self.context
 
@@ -63,10 +63,7 @@ class FileManagerActions(BrowserView):
         return ext
 
     def getFile(self, path):
-
-        path = path.encode('utf-8')
-
-        path = self.normalizePath(path)
+        path = self.normalizePath(path.encode('utf-8'))
         ext = self.getExtension(path=path)
         result = {'ext': ext}
         self.request.response.setHeader('Content-Type', 'application/json')
@@ -128,13 +125,12 @@ class FileManagerActions(BrowserView):
         size = 0
 
         if isinstance(obj, File):
-            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')
+            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')  # noqa
             size = obj.get_size() / 1024
 
         fileType = self.getExtension(obj)
         if isinstance(obj, FilesystemFile):
             stats = os.stat(obj.path)
-            created = localtime(stats.st_ctime)
             modified = localtime(stats.st_mtime)
             properties['dateModified'] = strftime('%c', modified)
             size = stats.st_size / 1024
@@ -177,8 +173,10 @@ class FileManagerActions(BrowserView):
             reg = re.compile('url\(([^)]+)\)')
             urls = reg.findall(value)
 
-            # Trim off the @@plone.resourceeditor bit to just give us the theme url
-            location = self.request.URL[0:self.request.URL.find('@@plone.resourceeditor')]
+            # Trim off the @@plone.resourceeditor bit to just give us the
+            # theme url
+            limit = self.request.URL.find('@@plone.resourceeditor')
+            location = self.request.URL[0:limit]
             base = urlparse(location)
             for url in urls:
                 asset = urlparse(url.strip("'").strip('"'))
@@ -230,8 +228,12 @@ class FileManagerActions(BrowserView):
                     parent.makeDirectory(name)
                 except UnicodeDecodeError:
                     error = translate(
-                        _(u'filemanager_invalid_foldername',
-                          default=u"Invalid folder name."), context=self.request)
+                        _(
+                            u'filemanager_invalid_foldername',
+                            default=u"Invalid folder name."
+                        ),
+                        context=self.request
+                    )
                     code = 1
 
         self.request.response.setHeader('Content-Type', 'application/json')
@@ -240,7 +242,7 @@ class FileManagerActions(BrowserView):
             'name': name,
             'error': error,
             'code': code,
-            })
+        })
 
     def addFile(self, path, name):
         """Add a new empty file in the given directory
@@ -343,8 +345,11 @@ class FileManagerActions(BrowserView):
             if newName != oldName:
                 if newName in parent:
                     error = translate(
-                        _(u'filemanager_error_file_exists',
-                          default=u"File already exists."), context=self.request)
+                        _(
+                            u'filemanager_error_file_exists',
+                            default=u"File already exists."
+                        ),
+                        context=self.request)
                     code = 1
                 else:
                     parent.rename(oldName, newName)
@@ -412,6 +417,7 @@ class FileManagerActions(BrowserView):
         if action == "delete":
             path = self.request.get("path", '')
             return self.delete(path)
+
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
@@ -526,28 +532,28 @@ class FileManager(BrowserView):
     def setup(self):
         processInputs(self.request)
 
-    @property.Lazy
+    @zproperty.Lazy
     def portalUrl(self):
         return getToolByName(self.context, 'portal_url')()
 
-    @property.Lazy
+    @zproperty.Lazy
     def resourceDirectory(self):
         return self.context
 
-    @property.Lazy
+    @zproperty.Lazy
     def resourceType(self):
         return self.resourceDirectory.__parent__.__parent__.__name__
 
-    @property.Lazy
+    @zproperty.Lazy
     def baseUrl(self):
         return "%s/++%s++%s" % (self.portalUrl, self.resourceType,
                                 self.resourceDirectory.__name__)
 
-    @property.Lazy
+    @zproperty.Lazy
     def fileConnector(self):
         return "%s/@@%s" % (self.baseUrl, self.__name__,)
 
-    @property.Lazy
+    @zproperty.Lazy
     def filemanagerConfiguration(self):
         return """\
 var FILE_ROOT = '/';
@@ -635,7 +641,7 @@ var BASE_URL = '%s';
         }
 
         if isinstance(obj, File):
-            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')
+            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')  # noqa
             size = obj.get_size() / 1024
             if size < 1024:
                 size_specifier = u'kb'
@@ -721,8 +727,12 @@ var BASE_URL = '%s';
                     parent.makeDirectory(name)
                 except UnicodeDecodeError:
                     error = translate(
-                        _(u'filemanager_invalid_foldername',
-                          default=u"Invalid folder name."), context=self.request)
+                        _(
+                            u'filemanager_invalid_foldername',
+                            default=u"Invalid folder name."
+                        ),
+                        context=self.request
+                    )
                     code = 1
 
         return {

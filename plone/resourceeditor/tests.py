@@ -1,6 +1,6 @@
-import unittest2 as unittest
-
+# -*- coding: utf-8 -*-
 from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING
+import unittest2 as unittest
 
 
 class TestResourceEditorOperations(unittest.TestCase):
