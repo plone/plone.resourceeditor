@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from AccessControl import Unauthorized
+from DateTime import DateTime
 from OFS.Image import File, Image
 from plone.resource.file import FilesystemFile
 from plone.resource.interfaces import IResourceDirectory
@@ -125,7 +126,7 @@ class FileManagerActions(BrowserView):
         size = 0
 
         if isinstance(obj, File):
-            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')  # noqa
+            properties['dateModified'] = DateTime(obj._p_mtime).strftime('%c')
             size = obj.get_size() / 1024
 
         fileType = self.getExtension(obj)
@@ -641,7 +642,7 @@ var BASE_URL = '%s';
         }
 
         if isinstance(obj, File):
-            properties['dateModified'] = obj.bobobase_modification_time().strftime('%c')  # noqa
+            properties['dateModified'] = DateTime(obj._p_mtime).strftime('%c')
             size = obj.get_size() / 1024
             if size < 1024:
                 size_specifier = u'kb'
@@ -651,8 +652,7 @@ var BASE_URL = '%s';
             properties['size'] = '%i%s' % (
                 size,
                 translate(_(u'filemanager_%s' % size_specifier,
-                            default=size_specifier), context=self.request)
-                )
+                            default=size_specifier), context=self.request))
 
         fileType = 'txt'
 
