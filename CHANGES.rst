@@ -4,17 +4,19 @@ Changelog
 2.0.4 (unreleased)
 ------------------
 
+Fixes:
+
 - No longer rely on deprecated ``bobobase_modification_time`` from
   ``Persistence.Persistent``.
   [thet]
 
-- Minor cleanup (pep8, readability, ReST)
+- Minor cleanup: pep8, readability, ReST.
   [jensens]
 
-- Fixed problem causing file timestamps to show up incorrectly
+- Fixed problem causing file timestamps to show up incorrectly.
   [obct537]
 
-- Fixed problem error preventing file saving from the filemanager
+- Fixed error preventing file saving in the filemanager.
   [obct537]
 
 
