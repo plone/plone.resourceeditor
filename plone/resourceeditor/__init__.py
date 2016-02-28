@@ -1,5 +1,7 @@
-import os.path
+# -*- coding: utf-8 -*-
 import mimetypes
+import os.path
+
 
 # Borrowed from zope.contenttype.
 # This allows us to register mimetypes that
@@ -16,4 +18,4 @@ def add_files(filenames):
 
 
 here = os.path.dirname(os.path.abspath(__file__))
-add_files([os.path.join(here, "mime.types")])
+add_files([os.path.join(here, 'mime.types')])

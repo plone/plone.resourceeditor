@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 from AccessControl import Unauthorized
 from DateTime import DateTime
-from OFS.Image import File, Image
+from OFS.Image import File
+from OFS.Image import Image
 from plone.resource.file import FilesystemFile
 from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser.decode import processInputs
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from time import localtime, strftime
+from time import localtime
+from time import strftime
 from urlparse import urlparse
 from zExceptions import NotFound
 from zope.cachedescriptors import property as zproperty
@@ -16,18 +18,20 @@ from zope.component.hooks import getSite
 from zope.i18n import translate
 from zope.i18nmessageid import MessageFactory
 from zope.publisher.browser import BrowserView
+
 import json
 import os.path
 import posixpath
 import re
 import urllib
 
-_ = MessageFactory(u"plone")
+
+_ = MessageFactory(u'plone')
 
 
 def authorize(context, request):
     authenticator = queryMultiAdapter((context, request),
-                                      name=u"authenticator")
+                                      name=u'authenticator')
     if authenticator is not None and not authenticator.verify():
         raise Unauthorized
 
@@ -141,9 +145,9 @@ class FileManagerActions(BrowserView):
         else:
             size_specifier = u'mb'
             size = size / 1024
-        properties['size'] = '%i%s' % (
+        properties['size'] = '{0}{1}'.format(
             size,
-            translate(_(u'filemanager_%s' % size_specifier,
+            translate(_(u'filemanager_{0}'.format(size_specifier),
                         default=size_specifier), context=self.request)
         )
 
@@ -210,18 +214,18 @@ class FileManagerActions(BrowserView):
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
             if not validateFilename(name):
                 error = translate(_(u'filemanager_invalid_foldername',
-                                  default=u"Invalid folder name."),
+                                  default=u'Invalid folder name.'),
                                   context=self.request)
                 code = 1
             elif name in parent:
                 error = translate(_(u'filemanager_error_folder_exists',
-                                  default=u"Folder already exists."),
+                                  default=u'Folder already exists.'),
                                   context=self.request)
                 code = 1
             else:
@@ -231,7 +235,7 @@ class FileManagerActions(BrowserView):
                     error = translate(
                         _(
                             u'filemanager_invalid_foldername',
-                            default=u"Invalid folder name."
+                            default=u'Invalid folder name.'
                         ),
                         context=self.request
                     )
@@ -255,24 +259,24 @@ class FileManagerActions(BrowserView):
         code = 0
 
         parentPath = self.normalizePath(path)
-        newPath = "%s/%s" % (parentPath, name,)
+        newPath = '{0}/{1}'.format(parentPath, name,)
 
         try:
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
             if not validateFilename(name):
                 error = translate(_(u'filemanager_invalid_filename',
-                                  default=u"Invalid file name."),
+                                  default=u'Invalid file name.'),
                                   context=self.request)
                 code = 1
             elif name in parent:
                 error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
+                                  default=u'File already exists.'),
                                   context=self.request)
                 code = 1
             else:
@@ -280,10 +284,10 @@ class FileManagerActions(BrowserView):
 
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({
-            "parent": self.normalizeReturnPath(parentPath),
-            "name": name,
-            "error": error,
-            "code": code,
+            'parent': self.normalizeReturnPath(parentPath),
+            'name': name,
+            'error': error,
+            'code': code,
         })
 
     def delete(self, path):
@@ -302,7 +306,7 @@ class FileManagerActions(BrowserView):
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
@@ -310,7 +314,7 @@ class FileManagerActions(BrowserView):
                 del parent[name]
             except KeyError:
                 error = translate(_(u'filemanager_error_file_not_found',
-                                  default=u"File not found."),
+                                  default=u'File not found.'),
                                   context=self.request)
                 code = 1
 
@@ -339,7 +343,7 @@ class FileManagerActions(BrowserView):
             parent = self.getObject(oldPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
@@ -348,7 +352,7 @@ class FileManagerActions(BrowserView):
                     error = translate(
                         _(
                             u'filemanager_error_file_exists',
-                            default=u"File already exists."
+                            default=u'File already exists.'
                         ),
                         context=self.request)
                     code = 1
@@ -357,10 +361,10 @@ class FileManagerActions(BrowserView):
 
         self.request.response.setHeader('Content-Type', 'application/json')
         return json.dumps({
-            "oldParent": self.normalizeReturnPath(oldPath),
-            "oldName": oldName,
-            "newParent": self.normalizeReturnPath(newPath),
-            "newName": newName,
+            'oldParent': self.normalizeReturnPath(oldPath),
+            'oldName': oldName,
+            'newParent': self.normalizeReturnPath(newPath),
+            'newName': newName,
             'error': error,
             'code': code,
         })
@@ -391,32 +395,32 @@ class FileManagerActions(BrowserView):
 
             return json.dumps(getDirectory(self.context))
 
-        if action == "getFile":
-            path = self.request.get("path", '')
+        if action == 'getFile':
+            path = self.request.get('path', '')
             return self.getFile(path)
 
-        if action == "saveFile":
-            path = self.request.get("path", '')
-            data = self.request.get("data", '')
+        if action == 'saveFile':
+            path = self.request.get('path', '')
+            data = self.request.get('data', '')
             return self.saveFile(path, data)
 
-        if action == "addFolder":
-            path = self.request.get("path", '')
-            name = self.request.get("name", '')
+        if action == 'addFolder':
+            path = self.request.get('path', '')
+            name = self.request.get('name', '')
             return self.addFolder(path, name)
 
-        if action == "addFile":
-            path = self.request.get("path", '')
-            name = self.request.get("filename", '')
+        if action == 'addFile':
+            path = self.request.get('path', '')
+            name = self.request.get('filename', '')
             return self.addFile(path, name)
 
-        if action == "renameFile":
-            path = self.request.get("path", '')
-            name = self.request.get("filename", '')
+        if action == 'renameFile':
+            path = self.request.get('path', '')
+            name = self.request.get('filename', '')
             return self.renameFile(path, name)
 
-        if action == "delete":
-            path = self.request.get("path", '')
+        if action == 'delete':
+            path = self.request.get('path', '')
             return self.delete(path)
 
 
@@ -425,7 +429,7 @@ class FileManager(BrowserView):
     """
 
     previewTemplate = ViewPageTemplateFile('preview.pt')
-    staticFiles = "++resource++plone.resourceeditor/filemanager"
+    staticFiles = '++resource++plone.resourceeditor/filemanager'
     imageExtensions = ['png', 'gif', 'jpg', 'jpeg']
     knownExtensions = ['css', 'html', 'htm', 'txt', 'xml', 'js', 'cfg']
     capabilities = ['download', 'rename', 'delete']
@@ -447,7 +451,7 @@ class FileManager(BrowserView):
         site = getSite()
         viewName = '@@plone.resourceeditor.filemanager-actions'
         return json.dumps({
-            'actionUrl': '%s/++%s++%s/%s' % (
+            'actionUrl': '{0}/++{1}++{2}/{3}'.format(
                 site.absolute_url(),
                 self.context.__parent__.__parent__.__name__,
                 self.context.__name__,
@@ -520,7 +524,7 @@ class FileManager(BrowserView):
                 )
             if textareaWrap:
                 self.request.response.setHeader('Content-Type', 'text/html')
-                return "<textarea>%s</textarea>" % json.dumps(response)
+                return '<textarea>{0}</textarea>'.format(json.dumps(response))
             else:
                 self.request.response.setHeader('Content-Type',
                                                 'application/json')
@@ -547,26 +551,30 @@ class FileManager(BrowserView):
 
     @zproperty.Lazy
     def baseUrl(self):
-        return "%s/++%s++%s" % (self.portalUrl, self.resourceType,
-                                self.resourceDirectory.__name__)
+        return '{0}/++{1}++{2}'.format(
+            self.portalUrl,
+            self.resourceType,
+            self.resourceDirectory.__name__
+        )
 
     @zproperty.Lazy
     def fileConnector(self):
-        return "%s/@@%s" % (self.baseUrl, self.__name__,)
+        return '{0}/@@{1}'.format(self.baseUrl, self.__name__,)
 
     @zproperty.Lazy
     def filemanagerConfiguration(self):
         return """\
 var FILE_ROOT = '/';
-var IMAGES_EXT = %s;
-var CAPABILITIES = %s;
-var FILE_CONNECTOR = '%s';
-var BASE_URL = '%s';
-""" % (
+var IMAGES_EXT = {0};
+var CAPABILITIES = {1};
+var FILE_CONNECTOR = '{2}';
+var BASE_URL = '{3}';
+""".format(
             repr(self.imageExtensions),
             repr(self.capabilities),
             self.fileConnector,
-            self.baseUrl,)
+            self.baseUrl,
+        )
 
     def normalizePath(self, path):
         if path.startswith('/'):
@@ -614,10 +622,10 @@ var BASE_URL = '%s';
         for name in folder.listDirectory():
             if IResourceDirectory.providedBy(folder[name]):
                 folders.append(self.getInfo(
-                    path="%s/%s/" % (path, name), getSize=getSizes))
+                    path='{0}/{1}/'.format(path, name), getSize=getSizes))
             else:
                 files.append(self.getInfo(
-                    path="%s/%s" % (path, name), getSize=getSizes))
+                    path='{0}/{1}'.format(path, name), getSize=getSizes))
         return folders + files
 
     def getInfo(self, path, getSize=False):
@@ -649,33 +657,44 @@ var BASE_URL = '%s';
             else:
                 size_specifier = u'mb'
                 size = size / 1024
-            properties['size'] = '%i%s' % (
+            properties['size'] = '{0}{1}'.format(
                 size,
-                translate(_(u'filemanager_%s' % size_specifier,
-                            default=size_specifier), context=self.request))
+                translate(_(u'filemanager_{0}'.format(size_specifier),
+                            default=size_specifier), context=self.request)
+            )
 
         fileType = 'txt'
 
         siteUrl = self.portalUrl
         resourceName = self.resourceDirectory.__name__
 
-        preview = "%s/%s/images/fileicons/default.png" % (siteUrl,
-                                                          self.staticFiles)
+        preview = '{0}/{1}/images/fileicons/default.png'.format(
+            siteUrl,
+            self.staticFiles
+        )
 
         if IResourceDirectory.providedBy(obj):
-            preview = "%s/%s/images/fileicons/_Open.png" % (siteUrl,
-                                                            self.staticFiles)
+            preview = '{0}/{1}/images/fileicons/_Open.png'.format(
+                siteUrl,
+                self.staticFiles
+            )
             fileType = 'dir'
             path = path + '/'
         else:
             fileType = self.getExtension(path, obj)
             if fileType in self.imageExtensions:
-                preview = '%s/++%s++%s/%s' % (siteUrl, self.resourceType,
-                                              resourceName, path)
+                preview = '{0}/++{1}++{2}/{3}'.format(
+                    siteUrl,
+                    self.resourceType,
+                    resourceName,
+                    path
+                )
             elif fileType in self.extensionsWithIcons:
-                preview = "%s/%s/images/fileicons/%s.png" % (siteUrl,
-                                                             self.staticFiles,
-                                                             fileType)
+                preview = '{0}/{1}/images/fileicons/{2}.png'.format(
+                    siteUrl,
+                    self.staticFiles,
+                    fileType
+                )
 
         if isinstance(obj, Image):
             properties['height'] = obj.height
@@ -708,18 +727,18 @@ var BASE_URL = '%s';
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
             if not validateFilename(name):
                 error = translate(_(u'filemanager_invalid_foldername',
-                                  default=u"Invalid folder name."),
+                                  default=u'Invalid folder name.'),
                                   context=self.request)
                 code = 1
             elif name in parent:
                 error = translate(_(u'filemanager_error_folder_exists',
-                                  default=u"Folder already exists."),
+                                  default=u'Folder already exists.'),
                                   context=self.request)
                 code = 1
             else:
@@ -729,7 +748,7 @@ var BASE_URL = '%s';
                     error = translate(
                         _(
                             u'filemanager_invalid_foldername',
-                            default=u"Invalid folder name."
+                            default=u'Invalid folder name.'
                         ),
                         context=self.request
                     )
@@ -770,19 +789,19 @@ var BASE_URL = '%s';
             newPath = replacepath
             parentPath = '/'.join(replacepath.split('/')[:-1])
         else:
-            newPath = "%s/%s" % (parentPath, name,)
+            newPath = '{0}/{1}'.format(parentPath, name,)
 
         try:
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
             if name in parent and not replacepath:
                 error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
+                                  default=u'File already exists.'),
                                   context=self.request)
                 code = 1
             else:
@@ -790,16 +809,16 @@ var BASE_URL = '%s';
                     self.resourceDirectory.writeFile(newPath, newfile)
                 except ValueError:
                     error = translate(_(u'filemanager_error_file_invalid',
-                                      default=u"Could not read file."),
+                                      default=u'Could not read file.'),
                                       context=self.request)
                     code = 1
 
         return {
-            "parent": self.normalizeReturnPath(parentPath),
-            "path": self.normalizeReturnPath(path),
-            "name": name,
-            "error": error,
-            "code": code,
+            'parent': self.normalizeReturnPath(parentPath),
+            'path': self.normalizeReturnPath(path),
+            'name': name,
+            'error': error,
+            'code': code,
         }
 
     def addNew(self, path, name):
@@ -813,34 +832,34 @@ var BASE_URL = '%s';
         code = 0
 
         parentPath = self.normalizePath(path)
-        newPath = "%s/%s" % (parentPath, name,)
+        newPath = '{0}/{1}'.format(parentPath, name,)
 
         try:
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
             if not validateFilename(name):
                 error = translate(_(u'filemanager_invalid_filename',
-                                  default=u"Invalid file name."),
+                                  default=u'Invalid file name.'),
                                   context=self.request)
                 code = 1
             elif name in parent:
                 error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
+                                  default=u'File already exists.'),
                                   context=self.request)
                 code = 1
             else:
                 self.resourceDirectory.writeFile(newPath, '')
 
         return {
-            "parent": self.normalizeReturnPath(parentPath),
-            "name": name,
-            "error": error,
-            "code": code,
+            'parent': self.normalizeReturnPath(parentPath),
+            'name': name,
+            'error': error,
+            'code': code,
         }
 
     def rename(self, path, newName):
@@ -861,7 +880,7 @@ var BASE_URL = '%s';
             parent = self.getObject(oldPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
@@ -869,17 +888,17 @@ var BASE_URL = '%s';
                 if newName in parent:
                     error = translate(
                         _(u'filemanager_error_file_exists',
-                          default=u"File already exists."),
+                          default=u'File already exists.'),
                         context=self.request)
                     code = 1
                 else:
                     parent.rename(oldName, newName)
 
         return {
-            "oldParent": self.normalizeReturnPath(oldPath),
-            "oldName": oldName,
-            "newParent": self.normalizeReturnPath(newPath),
-            "newName": newName,
+            'oldParent': self.normalizeReturnPath(oldPath),
+            'oldName': oldName,
+            'newParent': self.normalizeReturnPath(newPath),
+            'newName': newName,
             'error': error,
             'code': code,
         }
@@ -900,7 +919,7 @@ var BASE_URL = '%s';
             parent = self.getObject(parentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
@@ -908,7 +927,7 @@ var BASE_URL = '%s';
                 del parent[name]
             except KeyError:
                 error = translate(_(u'filemanager_error_file_not_found',
-                                  default=u"File not found."),
+                                  default=u'File not found.'),
                                   context=self.request)
                 code = 1
 
@@ -939,18 +958,18 @@ var BASE_URL = '%s';
             target = self.getObject(newParentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
-                              default=u"Parent folder not found."),
+                              default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
         else:
             if filename not in parent:
                 error = translate(_(u'filemanager_error_file_not_found',
-                                  default=u"File not found."),
+                                  default=u'File not found.'),
                                   context=self.request)
                 code = 1
             elif filename in target:
                 error = translate(_(u'filemanager_error_file_exists',
-                                  default=u"File already exists."),
+                                  default=u'File already exists.'),
                                   context=self.request)
                 code = 1
             else:
@@ -958,7 +977,7 @@ var BASE_URL = '%s';
                 del parent[filename]
                 target[filename] = obj
 
-        newCanonicalPath = "%s/%s" % (newParentPath, filename)
+        newCanonicalPath = '{0}/{1}'.format(newParentPath, filename)
 
         return {
             'code': code,
@@ -980,8 +999,10 @@ var BASE_URL = '%s';
 
         self.request.response.setHeader('Content-Type',
                                         'application/octet-stream')
-        self.request.response.setHeader('Content-Disposition',
-                                        'attachment; filename="%s"' % name)
+        self.request.response.setHeader(
+            'Content-Disposition',
+            'attachment; filename="{0}"'.format(name)
+        )
 
         # TODO: Use streams here if we can
         return parent.readFile(name)
@@ -1046,7 +1067,7 @@ var BASE_URL = '%s';
         def getFolder(root, relpath=''):
             result = []
             for name in root.listDirectory():
-                path = '%s/%s' % (relpath, name)
+                path = '{0}/{1}'.format(relpath, name)
                 if IResourceDirectory.providedBy(root[name]):
                     item = {
                         'title': name,
@@ -1063,6 +1084,6 @@ var BASE_URL = '%s';
             'title': '/',
             'key': '/',
             'isFolder': True,
-            "expand": True,
+            'expand': True,
             'children': getFolder(self.context)
         }])
