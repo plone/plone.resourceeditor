@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING
+from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING  # noqa
+
 import unittest2 as unittest
 
 
@@ -21,7 +22,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
 
-        r.writeFile("test.txt", "A text file")
+        r.writeFile('test.txt', 'A text file')
 
         view = FileManager(r, self.layer['request'])
         info = view.getInfo('/test.txt')
@@ -37,9 +38,9 @@ class TestResourceEditorOperations(unittest.TestCase):
         r = self._make_directory()
 
         r.makeDirectory('alpha')
-        r['alpha'].writeFile('beta.txt', "Beta")
+        r['alpha'].writeFile('beta.txt', 'Beta')
         r['alpha'].makeDirectory('delta')
-        r['alpha']['delta'].writeFile('gamma.css', "body {}")
+        r['alpha']['delta'].writeFile('gamma.css', 'body {}')
 
         view = FileManager(r, self.layer['request'])
         info = view.getFolder('/alpha')
@@ -127,10 +128,10 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManager(r, self.layer['request'])
 
-        d = StringIO("foo")
-        d.filename = "test.txt"
+        d = StringIO('foo')
+        d.filename = 'test.txt'
 
-        info = view.add("/", d)
+        info = view.add('/', d)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -142,14 +143,14 @@ class TestResourceEditorOperations(unittest.TestCase):
         from plone.resourceeditor.browser import FileManager
         from StringIO import StringIO
         r = self._make_directory()
-        r.makeDirectory("alpha")
+        r.makeDirectory('alpha')
 
         view = FileManager(r, self.layer['request'])
 
-        d = StringIO("foo")
-        d.filename = "test.txt"
+        d = StringIO('foo')
+        d.filename = 'test.txt'
 
-        info = view.add("/alpha", d)
+        info = view.add('/alpha', d)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -161,32 +162,32 @@ class TestResourceEditorOperations(unittest.TestCase):
         from plone.resourceeditor.browser import FileManager
         from StringIO import StringIO
         r = self._make_directory()
-        r.writeFile("test.txt", "boo")
+        r.writeFile('test.txt', 'boo')
 
         view = FileManager(r, self.layer['request'])
 
-        d = StringIO("foo")
-        d.filename = "test.txt"
+        d = StringIO('foo')
+        d.filename = 'test.txt'
 
-        info = view.add("/", d)
+        info = view.add('/', d)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
 
-        self.assertEqual(r.readFile("test.txt"), "boo")
+        self.assertEqual(r.readFile('test.txt'), 'boo')
 
     def test_add_replace(self):
         from plone.resourceeditor.browser import FileManager
         from StringIO import StringIO
         r = self._make_directory()
-        r.writeFile("test.txt", "boo")
+        r.writeFile('test.txt', 'boo')
 
         view = FileManager(r, self.layer['request'])
 
-        d = StringIO("foo")
-        d.filename = "test.txt"
+        d = StringIO('foo')
+        d.filename = 'test.txt'
 
-        info = view.add("/", d, "/test.txt")
+        info = view.add('/', d, '/test.txt')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -194,7 +195,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['path'], '/')
         self.assertEqual(info['parent'], '/')
 
-        self.assertEqual(r.readFile("test.txt"), "foo")
+        self.assertEqual(r.readFile('test.txt'), 'foo')
 
     def test_addnew(self):
         from plone.resourceeditor.browser import FileManager
@@ -202,28 +203,28 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.addNew("/", "test.txt")
+        info = view.addNew('/', 'test.txt')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
         self.assertEqual(info['name'], 'test.txt')
         self.assertEqual(info['parent'], '/')
 
-        self.assertEqual(r.readFile("test.txt"), "")
+        self.assertEqual(r.readFile('test.txt'), '')
 
     def test_addnew_exists(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.writeFile("test.txt", "foo")
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.addNew("/", "test.txt")
+        info = view.addNew('/', 'test.txt')
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
 
-        self.assertEqual(r.readFile("test.txt"), "foo")
+        self.assertEqual(r.readFile('test.txt'), 'foo')
 
     def test_addnew_invalidname(self):
         from plone.resourceeditor.browser import FileManager
@@ -232,18 +233,18 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManager(r, self.layer['request'])
 
         for char in '\\/:*?"<>':
-            info = view.addNew("/", "foo" + char)
+            info = view.addNew('/', 'foo' + char)
             self.assertEqual(info['code'], 1)
             self.assertNotEqual(info['error'], '')
 
     def test_rename(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.writeFile("test.txt", "foo")
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.rename("/test.txt", "foo.txt")
+        info = view.rename('/test.txt', 'foo.txt')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -252,17 +253,17 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['oldParent'], '/')
         self.assertEqual(info['newParent'], '/')
 
-        self.assertEqual(r.readFile("foo.txt"), "foo")
+        self.assertEqual(r.readFile('foo.txt'), 'foo')
 
     def test_rename_subfolder(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.makeDirectory("alpha")
-        r['alpha'].writeFile("test.txt", "foo")
+        r.makeDirectory('alpha')
+        r['alpha'].writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.rename("/alpha/test.txt", "foo.txt")
+        info = view.rename('/alpha/test.txt', 'foo.txt')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -271,17 +272,17 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['oldParent'], '/alpha')
         self.assertEqual(info['newParent'], '/alpha')
 
-        self.assertEqual(r['alpha'].readFile("foo.txt"), "foo")
+        self.assertEqual(r['alpha'].readFile('foo.txt'), 'foo')
 
     def test_rename_exists(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.writeFile("test.txt", "foo")
-        r.writeFile("foo.txt", "bar")
+        r.writeFile('test.txt', 'foo')
+        r.writeFile('foo.txt', 'bar')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.rename("/test.txt", "foo.txt")
+        info = view.rename('/test.txt', 'foo.txt')
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -290,16 +291,16 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['oldParent'], '/')
         self.assertEqual(info['newParent'], '/')
 
-        self.assertEqual(r.readFile("foo.txt"), "bar")
+        self.assertEqual(r.readFile('foo.txt'), 'bar')
 
     def test_delete(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.writeFile("test.txt", "foo")
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.delete("/test.txt")
+        info = view.delete('/test.txt')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -311,11 +312,11 @@ class TestResourceEditorOperations(unittest.TestCase):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
         r.makeDirectory('alpha')
-        r['alpha'].writeFile("test.txt", "foo")
+        r['alpha'].writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.delete("/alpha/test.txt")
+        info = view.delete('/alpha/test.txt')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -329,7 +330,7 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.delete("/test.txt")
+        info = view.delete('/test.txt')
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -338,46 +339,46 @@ class TestResourceEditorOperations(unittest.TestCase):
     def test_move(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.makeDirectory("alpha")
-        r.writeFile("test.txt", "foo")
+        r.makeDirectory('alpha')
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.move("/test.txt", "/alpha")
+        info = view.move('/test.txt', '/alpha')
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
         self.assertEqual(info['newPath'], '/alpha/test.txt')
 
         self.assertFalse('test.txt' in r)
-        self.assertEqual("foo", r['alpha'].readFile('test.txt'))
+        self.assertEqual('foo', r['alpha'].readFile('test.txt'))
 
     def test_move_exists(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.makeDirectory("alpha")
-        r['alpha'].writeFile("test.txt", "bar")
-        r.writeFile("test.txt", "foo")
+        r.makeDirectory('alpha')
+        r['alpha'].writeFile('test.txt', 'bar')
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.move("/test.txt", "/alpha")
+        info = view.move('/test.txt', '/alpha')
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
         self.assertEqual(info['newPath'], '/alpha/test.txt')
 
         self.assertTrue('test.txt' in r)
-        self.assertEqual("bar", r['alpha'].readFile('test.txt'))
+        self.assertEqual('bar', r['alpha'].readFile('test.txt'))
 
     def test_move_invalid_parent(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.writeFile("test.txt", "foo")
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
 
-        info = view.move("/test.txt", "/alpha")
+        info = view.move('/test.txt', '/alpha')
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -388,7 +389,7 @@ class TestResourceEditorOperations(unittest.TestCase):
     def test_download(self):
         from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
-        r.writeFile("test.txt", "foo")
+        r.writeFile('test.txt', 'foo')
 
         view = FileManager(r, self.layer['request'])
-        self.assertEqual("foo", view.download("/test.txt"))
+        self.assertEqual('foo', view.download('/test.txt'))

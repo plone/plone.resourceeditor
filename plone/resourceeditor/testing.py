@@ -24,6 +24,6 @@ class PloneResourceEditor(PloneSandboxLayer):
 
 PLONE_RESOURCE_EDITOR_FIXTURE = PloneResourceEditor()
 PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING = IntegrationTesting(
-    bases=(PLONE_RESOURCE_EDITOR_FIXTURE,),
-    name="plone.resourceeditor:Integration"
+    bases=(PLONE_RESOURCE_EDITOR_FIXTURE, ),
+    name='plone.resourceeditor:Integration',
 )

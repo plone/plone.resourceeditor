@@ -10,7 +10,8 @@ New:
 
 Fixes:
 
-- *add item here*
+- Cleanup code according to Plone style guide.
+  [gforcada]
 
 
 2.0.4 (2015-10-28)
