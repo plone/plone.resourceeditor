@@ -13,6 +13,10 @@ Fixes:
 - Cleanup code according to Plone style guide.
   [gforcada]
 
+- Do not crash on saving in FilesystemResourceDirectory, and return the file
+  content as 'tmp'.
+  [ebrehault]
+
 
 2.0.4 (2015-10-28)
 ------------------
