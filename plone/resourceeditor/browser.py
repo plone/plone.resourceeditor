@@ -3,6 +3,7 @@ from AccessControl import Unauthorized
 from DateTime import DateTime
 from OFS.Image import File
 from OFS.Image import Image
+from plone.resource.directory import FilesystemResourceDirectory
 from plone.resource.file import FilesystemFile
 from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
@@ -193,9 +194,14 @@ class FileManagerActions(BrowserView):
                 out = posixpath.relpath(target, start=base_dir)
                 value = value.replace(url.strip('"').strip("'"), out)
 
-        self.context.writeFile(path, value.encode('utf-8'))
         self.request.response.setHeader('Content-Type', 'application/json')
-        return json.dumps({'success': 'save'})
+        if isinstance(self.context, FilesystemResourceDirectory):
+            # we cannot save in an FS directory, but we return the file content
+            # (useful when we compile less from the theming editor)
+            return json.dumps({'success': 'tmp', 'value': value})
+        else:
+            self.context.writeFile(path, value.encode('utf-8'))
+            return json.dumps({'success': 'save'})
 
     def addFolder(self, path, name):
         """Create a new directory on the server within the given path.
