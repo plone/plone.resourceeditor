@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING  # noqa
 
-import unittest2 as unittest
+import unittest
 
 
 class TestResourceEditorOperations(unittest.TestCase):
