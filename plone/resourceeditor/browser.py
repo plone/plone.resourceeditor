@@ -375,6 +375,54 @@ class FileManagerActions(BrowserView):
             'code': code,
         })
 
+    def move(self, path, directory):
+        """Move the item at the given path to a new directory
+        """
+
+        path = path.encode('utf-8')
+        directory = directory.encode('utf-8')
+
+        npath = self.normalizePath(path)
+        newParentPath = self.normalizePath(directory)
+
+        parentPath = self.parentPath(npath)
+        filename = npath.split('/')[-1]
+
+        code = 0
+        error = ''
+
+        try:
+            parent = self.getObject(parentPath)
+            target = self.getObject(newParentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_invalid_parent',
+                              default=u'Parent folder not found.'),
+                              context=self.request)
+            code = 1
+        else:
+            if filename not in parent:
+                error = translate(_(u'filemanager_error_file_not_found',
+                                  default=u'File not found.'),
+                                  context=self.request)
+                code = 1
+            elif filename in target:
+                error = translate(_(u'filemanager_error_file_exists',
+                                  default=u'File already exists.'),
+                                  context=self.request)
+                code = 1
+            else:
+                obj = parent[filename]
+                del parent[filename]
+                target[filename] = obj
+
+        newCanonicalPath = '{0}/{1}'.format(newParentPath, filename)
+
+        return {
+            'code': code,
+            'error': error,
+            'newPath': self.normalizeReturnPath(newCanonicalPath),
+        }
+
     def __call__(self):
         action = self.request.get('action')
         if action == 'dataTree':
@@ -428,6 +476,11 @@ class FileManagerActions(BrowserView):
         if action == 'delete':
             path = self.request.get('path', '')
             return self.delete(path)
+
+        if action == 'move':
+            src_path = self.request.get('source', '')
+            des_path = self.request.get('destination', '')
+            return self.move(src_path, des_path)
 
 
 class FileManager(BrowserView):

@@ -11,6 +11,7 @@ Incompatibilities:
 New:
 
 - *add item here*
+- Add the move API endpoint to the FileManagerActions class
 
 Fixes:
 
