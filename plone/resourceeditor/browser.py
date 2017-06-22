@@ -36,6 +36,7 @@ def authorize(context, request):
     if authenticator is not None and not authenticator.verify():
         raise Unauthorized
 
+
 invalidFilenameChars = frozenset('\/:*?"<>|')
 
 
@@ -82,7 +83,7 @@ class FileManagerActions(BrowserView):
             return json.dumps(result)
         else:
             data = self.context.openFile(path)
-            if hasattr(data, 'read'):
+            try:
                 data = data.read()
 
                 result['contents'] = str(data)
@@ -96,6 +97,8 @@ class FileManagerActions(BrowserView):
                     info = self.getInfo(obj)
                     result['info'] = self.previewTemplate(info=info)
                     return json.dumps(result)
+            except AttributeError:
+                return None
 
     def normalizePath(self, path):
         if path.startswith('/'):
@@ -390,32 +393,48 @@ class FileManagerActions(BrowserView):
 
         code = 0
         error = ''
+        newCanonicalPath = '{0}/{1}'.format(newParentPath, filename)
 
         try:
             parent = self.getObject(parentPath)
-            target = self.getObject(newParentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
                               default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
-        else:
-            if filename not in parent:
-                error = translate(_(u'filemanager_error_file_not_found',
-                                  default=u'File not found.'),
-                                  context=self.request)
-                code = 1
-            elif filename in target:
-                error = translate(_(u'filemanager_error_file_exists',
-                                  default=u'File already exists.'),
-                                  context=self.request)
-                code = 1
-            else:
-                obj = parent[filename]
-                del parent[filename]
-                target[filename] = obj
+            return {
+                'code': code,
+                'error': error,
+                'newPath': self.normalizeReturnPath(newCanonicalPath),
+            }
 
-        newCanonicalPath = '{0}/{1}'.format(newParentPath, filename)
+        try:
+            target = self.getObject(newParentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_error_folder_exists',
+                              default=u'Destination folder not found.'),
+                              context=self.request)
+            code = 1
+            return {
+                'code': code,
+                'error': error,
+                'newPath': self.normalizeReturnPath(newCanonicalPath),
+            }
+
+        if filename not in parent:
+            error = translate(_(u'filemanager_error_file_not_found',
+                              default=u'File not found.'),
+                              context=self.request)
+            code = 1
+        elif filename in target:
+            error = translate(_(u'filemanager_error_file_exists',
+                              default=u'File already exists.'),
+                              context=self.request)
+            code = 1
+        else:
+            obj = parent[filename]
+            del parent[filename]
+            target[filename] = obj
 
         return {
             'code': code,
@@ -423,8 +442,7 @@ class FileManagerActions(BrowserView):
             'newPath': self.normalizeReturnPath(newCanonicalPath),
         }
 
-    def __call__(self):
-        action = self.request.get('action')
+    def do_action(self, action):
         if action == 'dataTree':
 
             def getDirectory(folder, relpath=''):
@@ -482,6 +500,10 @@ class FileManagerActions(BrowserView):
             des_path = self.request.get('destination', '')
             return self.move(src_path, des_path)
 
+    def __call__(self):
+        action = self.request.get('action')
+        return self.do_action(action)
+
 
 class FileManager(BrowserView):
     """Render the file manager and support its AJAX requests.
@@ -518,6 +540,68 @@ class FileManager(BrowserView):
             )
         })
 
+    def mode_selector(self, form):
+        # AJAX methods called by the file manager
+        mode = form['mode']
+
+        if mode in self.protectedActions:
+            authorize(self.context, self.request)
+
+        response = {'error:': 'Unknown request', 'code': -1}
+        textareaWrap = False
+
+        if mode == u'getfolder':
+            response = self.getFolder(
+                path=urllib.unquote(form['path']),
+                getSizes=form.get('getsizes', 'false') == 'true'
+            )
+        elif mode == u'getinfo':
+            response = self.getInfo(
+                path=urllib.unquote(form['path']),
+                getSize=form.get('getsize', 'false') == 'true'
+            )
+        elif mode == u'addfolder':
+            response = self.addFolder(
+                path=urllib.unquote(form['path']),
+                name=urllib.unquote(form['name'])
+            )
+        elif mode == u'add':
+            textareaWrap = True
+            response = self.add(
+                path=urllib.unquote(form['currentpath']),
+                newfile=form['newfile'],
+                replacepath=form.get('replacepath', None)
+            )
+        elif mode == u'addnew':
+            response = self.addNew(
+                path=urllib.unquote(form['path']),
+                name=urllib.unquote(form['name'])
+            )
+        elif mode == u'rename':
+            response = self.rename(
+                path=urllib.unquote(form['old']),
+                newName=urllib.unquote(form['new'])
+            )
+        elif mode == u'delete':
+            response = self.delete(
+                path=urllib.unquote(form['path'])
+            )
+        elif mode == 'move':
+            response = self.move(
+                path=urllib.unquote(form['path']),
+                directory=urllib.unquote(form['directory'])
+            )
+        elif mode == u'download':
+            return self.download(
+                path=urllib.unquote(form['path'])
+            )
+        if textareaWrap:
+            self.request.response.setHeader('Content-Type', 'text/html')
+            return '<textarea>{0}</textarea>'.format(json.dumps(response))
+        self.request.response.setHeader('Content-Type',
+                                        'application/json')
+        return json.dumps(response)
+
     def __call__(self):
         # make sure theme is disable for these requests
         self.request.response.setHeader('X-Theme-Disabled', 'True')
@@ -528,66 +612,7 @@ class FileManager(BrowserView):
 
         # AJAX methods called by the file manager
         if 'mode' in form:
-            mode = form['mode']
-
-            if mode in self.protectedActions:
-                authorize(self.context, self.request)
-
-            response = {'error:': 'Unknown request', 'code': -1}
-            textareaWrap = False
-
-            if mode == u'getfolder':
-                response = self.getFolder(
-                    path=urllib.unquote(form['path']),
-                    getSizes=form.get('getsizes', 'false') == 'true'
-                )
-            elif mode == u'getinfo':
-                response = self.getInfo(
-                    path=urllib.unquote(form['path']),
-                    getSize=form.get('getsize', 'false') == 'true'
-                )
-            elif mode == u'addfolder':
-                response = self.addFolder(
-                    path=urllib.unquote(form['path']),
-                    name=urllib.unquote(form['name'])
-                )
-            elif mode == u'add':
-                textareaWrap = True
-                response = self.add(
-                    path=urllib.unquote(form['currentpath']),
-                    newfile=form['newfile'],
-                    replacepath=form.get('replacepath', None)
-                )
-            elif mode == u'addnew':
-                response = self.addNew(
-                    path=urllib.unquote(form['path']),
-                    name=urllib.unquote(form['name'])
-                )
-            elif mode == u'rename':
-                response = self.rename(
-                    path=urllib.unquote(form['old']),
-                    newName=urllib.unquote(form['new'])
-                )
-            elif mode == u'delete':
-                response = self.delete(
-                    path=urllib.unquote(form['path'])
-                )
-            elif mode == 'move':
-                response = self.move(
-                    path=urllib.unquote(form['path']),
-                    directory=urllib.unquote(form['directory'])
-                )
-            elif mode == u'download':
-                return self.download(
-                    path=urllib.unquote(form['path'])
-                )
-            if textareaWrap:
-                self.request.response.setHeader('Content-Type', 'text/html')
-                return '<textarea>{0}</textarea>'.format(json.dumps(response))
-            else:
-                self.request.response.setHeader('Content-Type',
-                                                'application/json')
-                return json.dumps(response)
+            return self.mode_selector(form)
 
         # Rendering the view
         else:
@@ -1011,32 +1036,48 @@ var BASE_URL = '{3}';
 
         code = 0
         error = ''
+        newCanonicalPath = '{0}/{1}'.format(newParentPath, filename)
 
         try:
             parent = self.getObject(parentPath)
-            target = self.getObject(newParentPath)
         except KeyError:
             error = translate(_(u'filemanager_invalid_parent',
                               default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
-        else:
-            if filename not in parent:
-                error = translate(_(u'filemanager_error_file_not_found',
-                                  default=u'File not found.'),
-                                  context=self.request)
-                code = 1
-            elif filename in target:
-                error = translate(_(u'filemanager_error_file_exists',
-                                  default=u'File already exists.'),
-                                  context=self.request)
-                code = 1
-            else:
-                obj = parent[filename]
-                del parent[filename]
-                target[filename] = obj
+            return {
+                'code': code,
+                'error': error,
+                'newPath': self.normalizeReturnPath(newCanonicalPath),
+            }
 
-        newCanonicalPath = '{0}/{1}'.format(newParentPath, filename)
+        try:
+            target = self.getObject(newParentPath)
+        except KeyError:
+            error = translate(_(u'filemanager_error_folder_exists',
+                              default=u'Destination folder not found.'),
+                              context=self.request)
+            code = 1
+            return {
+                'code': code,
+                'error': error,
+                'newPath': self.normalizeReturnPath(newCanonicalPath),
+            }
+
+        if filename not in parent:
+            error = translate(_(u'filemanager_error_file_not_found',
+                              default=u'File not found.'),
+                              context=self.request)
+            code = 1
+        elif filename in target:
+            error = translate(_(u'filemanager_error_file_exists',
+                              default=u'File already exists.'),
+                              context=self.request)
+            code = 1
+        else:
+            obj = parent[filename]
+            del parent[filename]
+            target[filename] = obj
 
         return {
             'code': code,
