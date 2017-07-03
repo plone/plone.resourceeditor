@@ -4,14 +4,6 @@ Changelog
 2.0.6 (unreleased)
 ------------------
 
-Incompatibilities:
-
-- *add item here*
-
-New:
-
-- *add item here*
-
 Fixes:
 
 - Remove  unittest2 dependency
