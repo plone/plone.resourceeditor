@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING  # noqa
-
+import json
 import unittest
 
 
@@ -23,15 +23,13 @@ class TestResourceEditorOperations(unittest.TestCase):
         r = self._make_directory()
 
         r.writeFile('test.txt', 'A text file')
-
         view = FileManagerActions(r, self.layer['request'])
-        info = view.getInfo('/test.txt')
-
-        self.assertEqual(info['code'], 0)
-        self.assertEqual(info['error'], '')
+        info = view.getInfo(r["test.txt"])
+        
+        
         self.assertEqual(info['fileType'], 'txt')
         self.assertEqual(info['filename'], 'test.txt')
-        self.assertEqual(info['path'], '/test.txt')
+        self.assertEqual(info['path'], '/')
 
     def test_getfolder(self):
         from plone.resourceeditor.browser import FileManagerActions
@@ -46,15 +44,10 @@ class TestResourceEditorOperations(unittest.TestCase):
         info = view.getFolder('/alpha')
 
         self.assertEqual(len(info), 2)
-
-        self.assertEqual(info[0]['code'], 0)
-        self.assertEqual(info[0]['error'], '')
         self.assertEqual(info[0]['fileType'], 'dir')
         self.assertEqual(info[0]['filename'], 'delta')
-        self.assertEqual(info[0]['path'], '/alpha/delta')
+        self.assertEqual(info[0]['path'], '/alpha/delta/')
 
-        self.assertEqual(info[1]['code'], 0)
-        self.assertEqual(info[1]['error'], '')
         self.assertEqual(info[1]['fileType'], 'txt')
         self.assertEqual(info[1]['filename'], 'beta.txt')
         self.assertEqual(info[1]['path'], '/alpha/beta.txt')
@@ -65,14 +58,16 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        info = view.addFolder('/', 'alpha')
+        info_str = view.addFolder('/', 'alpha')
+        info = json.loads(info_str)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
         self.assertEqual(info['parent'], '/')
         self.assertEqual(info['name'], 'alpha')
 
-        info = view.addFolder('/alpha', 'beta')
+        info_str = view.addFolder('/alpha', 'beta')
+        info = json.loads(info_str)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -86,7 +81,8 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        info = view.addFolder('/', 'alpha')
+        info_str = view.addFolder('/', 'alpha')
+        info = json.loads(info_str)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -102,6 +98,7 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         for char in '\\/:*?"<>':
             info = view.addFolder('/', 'foo' + char)
+            info = json.loads(info)
 
             self.assertEqual(info['code'], 1)
             self.assertNotEqual(info['error'], '')
@@ -115,6 +112,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.addFolder('/alpha', 'beta')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -128,10 +126,10 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        d = StringIO('foo')
-        d.filename = 'test.txt'
+        d = 'test.txt'
 
-        info = view.add('/', d)
+        info = view.addFile('/', d)
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -147,10 +145,10 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        d = StringIO('foo')
-        d.filename = 'test.txt'
+        d = 'test.txt'
 
-        info = view.add('/alpha', d)
+        info = view.addFile('/alpha', d)
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -166,65 +164,15 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        d = StringIO('foo')
-        d.filename = 'test.txt'
+        d = 'test.txt'
 
-        info = view.add('/', d)
+        info = view.addFile('/', d)
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
 
         self.assertEqual(r.readFile('test.txt'), 'boo')
-
-    def test_add_replace(self):
-        from plone.resourceeditor.browser import FileManagerActions
-        from StringIO import StringIO
-        r = self._make_directory()
-        r.writeFile('test.txt', 'boo')
-
-        view = FileManagerActions(r, self.layer['request'])
-
-        d = StringIO('foo')
-        d.filename = 'test.txt'
-
-        info = view.add('/', d, '/test.txt')
-
-        self.assertEqual(info['code'], 0)
-        self.assertEqual(info['error'], '')
-        self.assertEqual(info['name'], 'test.txt')
-        self.assertEqual(info['path'], '/')
-        self.assertEqual(info['parent'], '/')
-
-        self.assertEqual(r.readFile('test.txt'), 'foo')
-
-    def test_addnew(self):
-        from plone.resourceeditor.browser import FileManagerActions
-        r = self._make_directory()
-
-        view = FileManagerActions(r, self.layer['request'])
-
-        info = view.addNew('/', 'test.txt')
-
-        self.assertEqual(info['code'], 0)
-        self.assertEqual(info['error'], '')
-        self.assertEqual(info['name'], 'test.txt')
-        self.assertEqual(info['parent'], '/')
-
-        self.assertEqual(r.readFile('test.txt'), '')
-
-    def test_addnew_exists(self):
-        from plone.resourceeditor.browser import FileManagerActions
-        r = self._make_directory()
-        r.writeFile('test.txt', 'foo')
-
-        view = FileManagerActions(r, self.layer['request'])
-
-        info = view.addNew('/', 'test.txt')
-
-        self.assertEqual(info['code'], 1)
-        self.assertNotEqual(info['error'], '')
-
-        self.assertEqual(r.readFile('test.txt'), 'foo')
 
     def test_addnew_invalidname(self):
         from plone.resourceeditor.browser import FileManagerActions
@@ -233,7 +181,8 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         for char in '\\/:*?"<>':
-            info = view.addNew('/', 'foo' + char)
+            info = view.addFile('/', 'foo' + char)
+            info = json.loads(info)
             self.assertEqual(info['code'], 1)
             self.assertNotEqual(info['error'], '')
 
@@ -244,7 +193,8 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        info = view.rename('/test.txt', 'foo.txt')
+        info = view.renameFile('/test.txt', 'foo.txt')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -263,7 +213,8 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        info = view.rename('/alpha/test.txt', 'foo.txt')
+        info = view.renameFile('/alpha/test.txt', 'foo.txt')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -282,7 +233,8 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         view = FileManagerActions(r, self.layer['request'])
 
-        info = view.rename('/test.txt', 'foo.txt')
+        info = view.renameFile('/test.txt', 'foo.txt')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -301,6 +253,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.delete('/test.txt')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -317,6 +270,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.delete('/alpha/test.txt')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -331,6 +285,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.delete('/test.txt')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -345,6 +300,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.move('/test.txt', '/alpha')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 0)
         self.assertEqual(info['error'], '')
@@ -363,6 +319,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.move('/test.txt', '/alpha')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')
@@ -379,6 +336,7 @@ class TestResourceEditorOperations(unittest.TestCase):
         view = FileManagerActions(r, self.layer['request'])
 
         info = view.move('/test.txt', '/alpha')
+        info = json.loads(info)
 
         self.assertEqual(info['code'], 1)
         self.assertNotEqual(info['error'], '')

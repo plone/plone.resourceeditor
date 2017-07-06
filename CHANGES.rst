@@ -11,7 +11,7 @@ Incompatibilities:
 New:
 
 - *add item here*
-- Add the move API endpoint to the FileManagerActions class
+- Add the download and move endpoint to the FileManagerActions class
   [b4oshany]
 - Add test cases for FileManagerAction
   [b4oshany]

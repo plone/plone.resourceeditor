@@ -69,6 +69,43 @@ class FileManagerActions(BrowserView):
         ext = ext[1:].lower()
         return ext
 
+    def getFolder(self, path):
+        """Returns a dict of file and folder objects representing the
+        contents of the given directory (indicated by a "path" parameter). The
+        values are dicts as returned by getInfo().
+
+        A boolean parameter "getsizes" indicates whether image dimensions
+        should be returned for each item. Folders should always be returned
+        before files.
+
+        Optionally a "type" parameter can be specified to restrict returned
+        files (depending on the connector). If a "type" parameter is given for
+        the HTML document, the same parameter value is reused and passed
+        to getFolder(). This can be used for example to only show image files
+        in a file system tree.
+        """
+
+        path = path.encode('utf-8')
+
+        folders = []
+        files = []
+
+        path = self.normalizePath(path)
+        folder = self.getObject(path)
+
+        for name in folder.listDirectory():
+            if IResourceDirectory.providedBy(folder[name]):
+                folders.append(self.getInfo(
+                    folder[name],
+                    path='/{0}/{1}/'.format(path, name)
+                ))
+            else:
+                files.append(self.getInfo(
+                    folder[name],
+                    path='/{0}/{1}'.format(path, name)
+                ))
+        return folders + files
+
     def getFile(self, path):
         path = self.normalizePath(path.encode('utf-8'))
         ext = self.getExtension(path=path)
@@ -124,7 +161,6 @@ class FileManagerActions(BrowserView):
         indicates whether the dimensions of the file (if an image) should be
         returned.
         """
-
         filename = obj.__name__
 
         properties = {
@@ -137,7 +173,12 @@ class FileManagerActions(BrowserView):
             properties['dateModified'] = DateTime(obj._p_mtime).strftime('%c')
             size = obj.get_size() / 1024
 
-        fileType = self.getExtension(obj)
+        if IResourceDirectory.providedBy(obj):
+            fileType = "dir"
+            is_folder = True
+        else:
+            fileType = self.getExtension(obj)
+            is_folder = False
         if isinstance(obj, FilesystemFile):
             stats = os.stat(obj.path)
             modified = localtime(stats.st_mtime)
@@ -166,7 +207,7 @@ class FileManagerActions(BrowserView):
             'filesystem': isinstance(obj, FilesystemFile),
             'properties': properties,
             'path': path,
-            'folder': False
+            'folder': is_folder
         }
 
     def saveFile(self, path, value):
@@ -297,6 +338,7 @@ class FileManagerActions(BrowserView):
             'name': name,
             'error': error,
             'code': code,
+            'path': path
         })
 
     def delete(self, path):
@@ -402,11 +444,11 @@ class FileManagerActions(BrowserView):
                               default=u'Parent folder not found.'),
                               context=self.request)
             code = 1
-            return {
+            return json.dumps({
                 'code': code,
                 'error': error,
                 'newPath': self.normalizeReturnPath(newCanonicalPath),
-            }
+            })
 
         try:
             target = self.getObject(newParentPath)
@@ -415,11 +457,11 @@ class FileManagerActions(BrowserView):
                               default=u'Destination folder not found.'),
                               context=self.request)
             code = 1
-            return {
+            return json.dumps({
                 'code': code,
                 'error': error,
                 'newPath': self.normalizeReturnPath(newCanonicalPath),
-            }
+            })
 
         if filename not in parent:
             error = translate(_(u'filemanager_error_file_not_found',
@@ -436,11 +478,11 @@ class FileManagerActions(BrowserView):
             del parent[filename]
             target[filename] = obj
 
-        return {
+        return json.dumps({
             'code': code,
             'error': error,
             'newPath': self.normalizeReturnPath(newCanonicalPath),
-        }
+        })
 
     def do_action(self, action):
         if action == 'dataTree':
@@ -499,6 +541,28 @@ class FileManagerActions(BrowserView):
             src_path = self.request.get('source', '')
             des_path = self.request.get('destination', '')
             return self.move(src_path, des_path)
+
+    def download(self, path):
+        """Serve the requested file to the user
+        """
+
+        path = path.encode('utf-8')
+
+        npath = self.normalizePath(path)
+        parentPath = '/'.join(npath.split('/')[:-1])
+        name = npath.split('/')[-1]
+
+        parent = self.getObject(parentPath)
+
+        self.request.response.setHeader('Content-Type',
+                                        'application/octet-stream')
+        self.request.response.setHeader(
+            'Content-Disposition',
+            'attachment; filename="{0}"'.format(name)
+        )
+
+        # TODO: Use streams here if we can
+        return parent.readFile(name)
 
     def __call__(self):
         action = self.request.get('action')
