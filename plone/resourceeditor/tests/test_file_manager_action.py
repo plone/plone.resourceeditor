@@ -24,9 +24,8 @@ class TestResourceEditorOperations(unittest.TestCase):
 
         r.writeFile('test.txt', 'A text file')
         view = FileManagerActions(r, self.layer['request'])
-        info = view.getInfo(r["test.txt"])
-        
-        
+        info = view.getInfo(r['test.txt'])
+
         self.assertEqual(info['fileType'], 'txt')
         self.assertEqual(info['filename'], 'test.txt')
         self.assertEqual(info['path'], '/')
@@ -121,7 +120,6 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add(self):
         from plone.resourceeditor.browser import FileManagerActions
-        from StringIO import StringIO
         r = self._make_directory()
 
         view = FileManagerActions(r, self.layer['request'])
@@ -139,7 +137,6 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add_subfolder(self):
         from plone.resourceeditor.browser import FileManagerActions
-        from StringIO import StringIO
         r = self._make_directory()
         r.makeDirectory('alpha')
 
@@ -158,7 +155,6 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add_exists(self):
         from plone.resourceeditor.browser import FileManagerActions
-        from StringIO import StringIO
         r = self._make_directory()
         r.writeFile('test.txt', 'boo')
 

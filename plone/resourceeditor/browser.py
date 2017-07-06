@@ -174,7 +174,7 @@ class FileManagerActions(BrowserView):
             size = obj.get_size() / 1024
 
         if IResourceDirectory.providedBy(obj):
-            fileType = "dir"
+            fileType = 'dir'
             is_folder = True
         else:
             fileType = self.getExtension(obj)
