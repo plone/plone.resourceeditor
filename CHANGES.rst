@@ -11,6 +11,10 @@ Breaking changes:
 New features:
 
 - *add item here*
+- Add the download and move endpoint to the FileManagerActions class
+  [b4oshany]
+- Add test cases for FileManagerAction
+  [b4oshany]
 
 Bug fixes:
 
@@ -24,7 +28,13 @@ Fixes:
 
 - Remove  unittest2 dependency
   [kakshay21]
+- Split the error message for the move API endpoint into two. One
+  is for the parent folder and the other is for the distination folder
+  [b4oshany]
+- Fix Jenkins flake8 errors
 
+
+[b4oshany]: https://github.com/b4oshany
 
 2.0.5 (2016-03-31)
 ------------------
