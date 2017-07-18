@@ -4,21 +4,13 @@ Changelog
 2.1 (unreleased)
 ----------------
 
-Breaking changes:
-
-- *add item here*
-
 New features:
 
-- *add item here*
 - Add the download and move endpoint to the FileManagerActions class
   [b4oshany]
+
 - Add test cases for FileManagerAction
   [b4oshany]
-
-Bug fixes:
-
-- *add item here*
 
 
 2.0.6 (2017-07-03)
