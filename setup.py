@@ -5,8 +5,8 @@ version = '1.0.1.dev0'
 setup(name='plone.resourceeditor',
       version=version,
       description="",
-      long_description=open("README.txt").read() + "\n" +
-                       open("CHANGES.txt").read(),
+      long_description=open("README.rst").read() + "\n" +
+                       open("CHANGES.rst").read(),
       classifiers=[
         "Framework :: Plone",
         "Programming Language :: Python",
