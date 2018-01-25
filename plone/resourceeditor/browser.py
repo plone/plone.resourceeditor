@@ -9,9 +9,10 @@ from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
 from Products.Five.browser.decode import processInputs
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
+from six.moves import urllib
+from six.moves.urllib.parse import urlparse
 from time import localtime
 from time import strftime
-from urlparse import urlparse
 from zExceptions import NotFound
 from zope.cachedescriptors import property as zproperty
 from zope.component import queryMultiAdapter
@@ -24,7 +25,7 @@ import json
 import os.path
 import posixpath
 import re
-import urllib
+import six
 
 
 _ = MessageFactory(u'plone')
@@ -212,7 +213,7 @@ class FileManagerActions(BrowserView):
 
     def saveFile(self, path, value):
         path = path.lstrip('/').encode('utf-8')
-        value = unicode(value.strip(), 'utf-8')
+        value = six.text_type(value.strip(), 'utf-8')
         value = value.replace('\r\n', '\n')
 
         if path in self.context:
@@ -616,48 +617,48 @@ class FileManager(BrowserView):
 
         if mode == u'getfolder':
             response = self.getFolder(
-                path=urllib.unquote(form['path']),
+                path=urllib.parse.unquote(form['path']),
                 getSizes=form.get('getsizes', 'false') == 'true'
             )
         elif mode == u'getinfo':
             response = self.getInfo(
-                path=urllib.unquote(form['path']),
+                path=urllib.parse.unquote(form['path']),
                 getSize=form.get('getsize', 'false') == 'true'
             )
         elif mode == u'addfolder':
             response = self.addFolder(
-                path=urllib.unquote(form['path']),
-                name=urllib.unquote(form['name'])
+                path=urllib.parse.unquote(form['path']),
+                name=urllib.parse.unquote(form['name'])
             )
         elif mode == u'add':
             textareaWrap = True
             response = self.add(
-                path=urllib.unquote(form['currentpath']),
+                path=urllib.parse.unquote(form['currentpath']),
                 newfile=form['newfile'],
                 replacepath=form.get('replacepath', None)
             )
         elif mode == u'addnew':
             response = self.addNew(
-                path=urllib.unquote(form['path']),
-                name=urllib.unquote(form['name'])
+                path=urllib.parse.unquote(form['path']),
+                name=urllib.parse.unquote(form['name'])
             )
         elif mode == u'rename':
             response = self.rename(
-                path=urllib.unquote(form['old']),
-                newName=urllib.unquote(form['new'])
+                path=urllib.parse.unquote(form['old']),
+                newName=urllib.parse.unquote(form['new'])
             )
         elif mode == u'delete':
             response = self.delete(
-                path=urllib.unquote(form['path'])
+                path=urllib.parse.unquote(form['path'])
             )
         elif mode == 'move':
             response = self.move(
-                path=urllib.unquote(form['path']),
-                directory=urllib.unquote(form['directory'])
+                path=urllib.parse.unquote(form['path']),
+                directory=urllib.parse.unquote(form['directory'])
             )
         elif mode == u'download':
             return self.download(
-                path=urllib.unquote(form['path'])
+                path=urllib.parse.unquote(form['path'])
             )
         if textareaWrap:
             self.request.response.setHeader('Content-Type', 'text/html')
@@ -930,7 +931,7 @@ var BASE_URL = '{3}';
         code = 0
 
         name = newfile.filename
-        if isinstance(name, unicode):
+        if isinstance(name, six.text_type):
             name = name.encode('utf-8')
 
         if replacepath:
