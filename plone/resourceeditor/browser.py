@@ -127,7 +127,7 @@ class FileManagerActions(BrowserView):
             try:
                 data = data.read()
 
-                if six.PY2 and isinstance(data, text_type):
+                if six.PY2 and isinstance(data, six.text_type):
                     result['contents'] = data.encode('utf8')
                 else:
                     result['contents'] = safe_unicode(data)
