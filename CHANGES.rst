@@ -14,7 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- Fix functionality and tests in py3
+  [pbauer]
 
 
 2.1.1 (2018-02-02)
