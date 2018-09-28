@@ -4,14 +4,6 @@ Changelog
 2.1.2 (unreleased)
 ------------------
 
-Breaking changes:
-
-- *add item here*
-
-New features:
-
-- *add item here*
-
 Bug fixes:
 
 - Fix functionality and tests in py3
