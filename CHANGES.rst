@@ -14,7 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- Fix UnicodeDecodeError when saving files TTW.
+  [tmassman]
 
 
 2.1.2 (2018-09-28)

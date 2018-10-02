@@ -256,7 +256,7 @@ class FileManagerActions(BrowserView):
             # (useful when we compile less from the theming editor)
             return json.dumps({'success': 'tmp', 'value': value})
         else:
-            self.context.writeFile(path, value.encode('utf-8'))
+            self.context.writeFile(path, value)
             return json.dumps({'success': 'save'})
 
     def addFolder(self, path, name):
