@@ -10,22 +10,6 @@ Changelog
 
 .. towncrier release notes start
 
-3.0 (unreleased)
-----------------
-
-Breaking changes:
-
-- *add item here*
-
-New features:
-
-- *add item here*
-
-Bug fixes:
-
-- *add item here*
-
-
 2.1.3 (2018-11-02)
 ------------------
 

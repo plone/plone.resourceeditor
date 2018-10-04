@@ -8,11 +8,11 @@
 
         <metal:block define-macro="dependency-css">
             <link rel="stylesheet" type="text/css"
-                tal:attributes="href string:${portal_url}/++resource++plone.resourceeditor-filemanager.css" />
+                tal:attributes="href string:${portal_url}/++plone++static/filemanager-compiled.css" />
         </metal:block>
 
         <metal:block define-macro="filemanager-scripts">
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++resource++plone.resourceeditor-filemanager.js"></script>
+            <script type="text/javascript" tal:attributes="src string:${portal_url}/++plone++static/filemanager-compiled.min.js"></script>
         </metal:block>
     </metal:block>
 

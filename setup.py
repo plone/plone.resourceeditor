@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-version = '2.1.4.dev0'
+version = '3.0.dev0'
 
 setup(
     name='plone.resourceeditor',
@@ -32,7 +32,7 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'plone.resource',
+        'plone.staticresources',
         'setuptools',
         'six',
         'zope.component',
