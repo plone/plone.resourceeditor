@@ -221,7 +221,7 @@ class FileManagerActions(BrowserView):
         path = path.lstrip('/')
         if six.PY2:
             path = path.encode('utf-8')
-        value = six.text_type(value.strip(), 'utf-8')
+        value = value.strip()
         if six.PY2:
             value = value.encode('utf-8')
 
