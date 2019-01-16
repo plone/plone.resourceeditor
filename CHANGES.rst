@@ -14,7 +14,8 @@ New features:
 
 Bug fixes:
 
-- *add item here*
+- fix UnicodeDecodeError while using Build CSS in Theme Editor #2698
+  [MrTango]
 
 
 2.1.3 (2018-11-02)
