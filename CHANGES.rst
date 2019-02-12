@@ -8,6 +8,22 @@ Changelog
 
 .. towncrier release notes start
 
+3.0.0 (2019-02-13)
+------------------
+
+Breaking changes:
+
+
+- Move all resources for plone.staticresources. See: PLIP 1653. [thet] (#22)
+
+
+Bug fixes:
+
+
+- fix UnicodeDecodeError while using Build CSS in Theme Editor #2698 [MrTango]
+  (#2698)
+
+
 2.1.3 (2018-11-02)
 ------------------
 
