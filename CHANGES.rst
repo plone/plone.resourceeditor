@@ -1,22 +1,12 @@
 Changelog
 =========
 
-2.1.4 (unreleased)
-------------------
+.. You should *NOT* be adding new change log entries to this file.
+   You should create a file in the news directory instead.
+   For helpful instructions, please see:
+   https://github.com/plone/plone.releaser/blob/master/ADD-A-NEWS-ITEM.rst
 
-Breaking changes:
-
-- *add item here*
-
-New features:
-
-- *add item here*
-
-Bug fixes:
-
-- fix UnicodeDecodeError while using Build CSS in Theme Editor #2698
-  [MrTango]
-
+.. towncrier release notes start
 
 2.1.3 (2018-11-02)
 ------------------
