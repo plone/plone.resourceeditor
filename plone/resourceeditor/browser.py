@@ -9,7 +9,6 @@ from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
 from Products.CMFPlone.utils import safe_unicode
 from Products.CMFPlone.utils import safe_encode
-from Products.Five.browser.decode import processInputs
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from six.moves import urllib
 from six.moves.urllib.parse import urlparse
@@ -698,7 +697,7 @@ class FileManager(BrowserView):
             return self.index()
 
     def setup(self):
-        processInputs(self.request)
+        pass
 
     @zproperty.Lazy
     def portalUrl(self):
@@ -1230,8 +1229,6 @@ var BASE_URL = '{3}';
         return json.dumps(result)
 
     def saveFile(self, path, value):
-        processInputs(self.request)
-
         path = self.request.form.get('path', path)
         value = self.request.form.get('value', value)
         if six.PY2:
