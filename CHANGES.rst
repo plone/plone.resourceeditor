@@ -8,6 +8,17 @@ Changelog
 
 .. towncrier release notes start
 
+3.0.1 (2020-03-13)
+------------------
+
+Bug fixes:
+
+
+- Do not call ``processInputs``.
+  It is not needed since Zope 4, and not existing in Zope 5.
+  [maurits] (#26)
+
+
 3.0.0 (2019-02-13)
 ------------------
 
