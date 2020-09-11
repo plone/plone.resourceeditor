@@ -39,7 +39,7 @@ def authorize(context, request):
         raise Unauthorized
 
 
-invalidFilenameChars = frozenset('\/:*?"<>|')
+invalidFilenameChars = frozenset(r'\/:*?"<>|')
 
 
 def validateFilename(name):
@@ -232,7 +232,7 @@ class FileManagerActions(BrowserView):
                 return json.dumps({'error': 'invalid path'})
 
         if 'relativeUrls' in self.request.form:
-            reg = re.compile('url\(([^)]+)\)')
+            reg = re.compile(r'url\(([^)]+)\)')
             urls = reg.findall(value)
 
             # Trim off the @@plone.resourceeditor bit to just give us the
