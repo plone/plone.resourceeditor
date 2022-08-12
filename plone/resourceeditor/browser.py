@@ -123,9 +123,8 @@ class FileManagerActions(BrowserView):
             result['info'] = self.previewTemplate(info=info)
             return json.dumps(result)
         else:
-            data = self.context.openFile(path)
             try:
-                data = data.read()
+                data = self.context.readFile(path)
 
                 if six.PY2 and isinstance(data, six.text_type):
                     result['contents'] = data.encode('utf8')
