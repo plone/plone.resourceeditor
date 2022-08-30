@@ -8,6 +8,16 @@ Changelog
 
 .. towncrier release notes start
 
+3.0.4 (2022-08-30)
+------------------
+
+Bug fixes:
+
+
+- Fix unclosed file warnings
+  [petschki] (#29)
+
+
 3.0.3 (2020-09-28)
 ------------------
 
