@@ -34,7 +34,6 @@ setup(
     install_requires=[
         "plone.staticresources",
         "setuptools",
-        "six",
         "zope.component",
         "zope.interface",
         "zope.publisher",

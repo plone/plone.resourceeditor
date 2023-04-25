@@ -1,6 +1,5 @@
 from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING
 
-import six
 import unittest
 
 

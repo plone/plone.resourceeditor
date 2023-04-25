@@ -6,10 +6,8 @@ from plone.resource.directory import FilesystemResourceDirectory
 from plone.resource.file import FilesystemFile
 from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.utils import safe_encode
 from Products.CMFPlone.utils import safe_unicode
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
-from six.moves import urllib
 from time import localtime
 from time import strftime
 from urllib.parse import urlparse
@@ -25,7 +23,7 @@ import json
 import os.path
 import posixpath
 import re
-import six
+import urllib
 
 
 _ = MessageFactory("plone")
@@ -83,9 +81,6 @@ class FileManagerActions(BrowserView):
         to getFolder(). This can be used for example to only show image files
         in a file system tree.
         """
-        if six.PY2 and isinstance(path, str):
-            path = safe_encode(path, "utf-8")
-
         folders = []
         files = []
 
@@ -100,8 +95,6 @@ class FileManagerActions(BrowserView):
         return folders + files
 
     def getFile(self, path):
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
         path = self.normalizePath(path)
         ext = self.getExtension(path=path)
         result = {"ext": ext}
@@ -117,10 +110,7 @@ class FileManagerActions(BrowserView):
             try:
                 data = self.context.readFile(path)
 
-                if six.PY2 and isinstance(data, str):
-                    result["contents"] = data.encode("utf8")
-                else:
-                    result["contents"] = safe_unicode(data)
+                result["contents"] = safe_unicode(data)
                 try:
                     return json.dumps(result)
                 except UnicodeDecodeError:
@@ -211,13 +201,7 @@ class FileManagerActions(BrowserView):
 
     def saveFile(self, path, value):
         path = path.lstrip("/")
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-        value = value.strip()
-        if six.PY2:
-            value = safe_encode(value, "utf-8")
-
-        value = value.replace("\r\n", "\n")
+        value = value.strip().replace("\r\n", "\n")
 
         if path in self.context:
             if IResourceDirectory.providedBy(self.context[path]):
@@ -253,10 +237,6 @@ class FileManagerActions(BrowserView):
 
     def addFolder(self, path, name):
         """Create a new directory on the server within the given path."""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            name = safe_encode(name, "utf-8")
-
         code = 0
         error = ""
 
@@ -312,10 +292,6 @@ class FileManagerActions(BrowserView):
 
     def addFile(self, path, name):
         """Add a new empty file in the given directory"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            name = safe_encode(name, "utf-8")
-
         error = ""
         code = 0
 
@@ -359,9 +335,6 @@ class FileManagerActions(BrowserView):
 
     def delete(self, path):
         """Delete the item at the given path."""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         npath = self.normalizePath(path)
         parentPath = "/".join(npath.split("/")[:-1])
         name = npath.split("/")[-1]
@@ -397,11 +370,6 @@ class FileManagerActions(BrowserView):
 
     def renameFile(self, path, newName):
         """Rename the item at the given path to the new name"""
-
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            newName = safe_encode(newName, "utf-8")
-
         npath = self.normalizePath(path)
         oldPath = newPath = "/".join(npath.split("/")[:-1])
         oldName = npath.split("/")[-1]
@@ -445,10 +413,6 @@ class FileManagerActions(BrowserView):
 
     def move(self, path, directory):
         """Move the item at the given path to a new directory"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            directory = safe_encode(directory, "utf-8")
-
         npath = self.normalizePath(path)
         newParentPath = self.normalizePath(directory)
 
@@ -581,9 +545,6 @@ class FileManagerActions(BrowserView):
 
     def download(self, path):
         """Serve the requested file to the user"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         npath = self.normalizePath(path)
         parentPath = "/".join(npath.split("/")[:-1])
         name = npath.split("/")[-1]
@@ -821,9 +782,6 @@ var BASE_URL = '{}';
         to getFolder(). This can be used for example to only show image files
         in a file system tree.
         """
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         folders = []
         files = []
 
@@ -844,9 +802,6 @@ var BASE_URL = '{}';
         indicates whether the dimensions of the file (if an image) should be
         returned.
         """
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         path = self.normalizePath(path)
         obj = self.getObject(path)
 
@@ -914,10 +869,6 @@ var BASE_URL = '{}';
 
     def addFolder(self, path, name):
         """Create a new directory on the server within the given path."""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            name = safe_encode(name, "utf-8")
-
         code = 0
         error = ""
 
@@ -978,21 +929,12 @@ var BASE_URL = '{}';
         uploaded file's name should be safe to use as a path component in a
         URL, so URL-encoded at a minimum.
         """
-
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-        if six.PY2 and replacepath is not None:
-            replacepath = safe_encode(replacepath, "utf-8")
-
         parentPath = self.normalizePath(path)
 
         error = ""
         code = 0
 
         name = newfile.filename
-        if six.PY2 and isinstance(name, str):
-            name = safe_encode(name, "utf-8")
-
         if replacepath:
             newPath = replacepath
             parentPath = "/".join(replacepath.split("/")[:-1])
@@ -1037,10 +979,6 @@ var BASE_URL = '{}';
 
     def addNew(self, path, name):
         """Add a new empty file in the given directory"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            name = safe_encode(name, "utf-8")
-
         error = ""
         code = 0
 
@@ -1080,10 +1018,6 @@ var BASE_URL = '{}';
 
     def rename(self, path, newName):
         """Rename the item at the given path to the new name"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            newName = safe_encode(newName, "utf-8")
-
         npath = self.normalizePath(path)
         oldPath = newPath = "/".join(npath.split("/")[:-1])
         oldName = npath.split("/")[-1]
@@ -1124,9 +1058,6 @@ var BASE_URL = '{}';
 
     def delete(self, path):
         """Delete the item at the given path."""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         npath = self.normalizePath(path)
         parentPath = "/".join(npath.split("/")[:-1])
         name = npath.split("/")[-1]
@@ -1159,10 +1090,6 @@ var BASE_URL = '{}';
 
     def move(self, path, directory):
         """Move the item at the given path to a new directory"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            directory = safe_encode(directory, "utf-8")
-
         npath = self.normalizePath(path)
         newParentPath = self.normalizePath(directory)
 
@@ -1229,9 +1156,6 @@ var BASE_URL = '{}';
 
     def download(self, path):
         """Serve the requested file to the user"""
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         npath = self.normalizePath(path)
         parentPath = "/".join(npath.split("/")[:-1])
         name = npath.split("/")[-1]
@@ -1275,9 +1199,6 @@ var BASE_URL = '{}';
     # Methods that are their own views
     def getFile(self, path):
         self.setup()
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-
         path = self.normalizePath(path)
         file = self.context.context.unrestrictedTraverse(path)
         ext = self.getExtension(path, file)
@@ -1294,9 +1215,6 @@ var BASE_URL = '{}';
     def saveFile(self, path, value):
         path = self.request.form.get("path", path)
         value = self.request.form.get("value", value)
-        if six.PY2:
-            path = safe_encode(path, "utf-8")
-            value = safe_encode(value, "utf-8")
         path = path.lstrip("/")
         value = value.replace("\r\n", "\n")
         self.context.writeFile(path, value)
