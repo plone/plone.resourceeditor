@@ -32,13 +32,12 @@ setup(
     zip_safe=False,
     python_requires=">=3.8",
     install_requires=[
+        "plone.base",
+        "plone.resource",
         "plone.staticresources",
         "setuptools",
-        "zope.component",
-        "zope.interface",
-        "zope.publisher",
-        "zope.schema",
-        "Zope2",
+        "Products.CMFCore",
+        "Zope",
     ],
     extras_require={"test": ["plone.app.testing"]},
     entry_points="""
