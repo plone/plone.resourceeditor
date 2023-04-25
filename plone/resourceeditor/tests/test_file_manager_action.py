@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING  # noqa
 import json
 import unittest

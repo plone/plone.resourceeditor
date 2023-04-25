@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING  # noqa
 
 import six
@@ -124,7 +123,7 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add(self):
         from plone.resourceeditor.browser import FileManager
-        from six import BytesIO
+        from io import BytesIO
         r = self._make_directory()
 
         view = FileManager(r, self.layer['request'])
@@ -141,7 +140,7 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add_subfolder(self):
         from plone.resourceeditor.browser import FileManager
-        from six import BytesIO
+        from io import BytesIO
         r = self._make_directory()
         r.makeDirectory('alpha')
 
@@ -160,7 +159,7 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add_exists(self):
         from plone.resourceeditor.browser import FileManager
-        from six import BytesIO
+        from io import BytesIO
         r = self._make_directory()
         r.writeFile('test.txt', b'boo')
 
@@ -178,7 +177,7 @@ class TestResourceEditorOperations(unittest.TestCase):
 
     def test_add_replace(self):
         from plone.resourceeditor.browser import FileManager
-        from six import BytesIO
+        from io import BytesIO
         r = self._make_directory()
         r.writeFile('test.txt', b'boo')
 
