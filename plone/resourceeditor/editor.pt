@@ -1,28 +1,45 @@
-<div xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"
-      xmlns:tal="http://xml.zope.org/namespaces/tal"
-      xmlns:metal="http://xml.zope.org/namespaces/metal"
-      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
-      i18n:domain="plone">
+<div xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+     xmlns:metal="http://xml.zope.org/namespaces/metal"
+     xmlns:tal="http://xml.zope.org/namespaces/tal"
+     lang="en"
+     xml:lang="en"
+     i18n:domain="plone"
+>
 
-    <metal:block define-macro="resources">
+  <metal:block define-macro="resources">
 
-        <metal:block define-macro="dependency-css">
-            <link rel="stylesheet" type="text/css"
-                tal:attributes="href string:${portal_url}/++plone++static/filemanager-compiled.css" />
-        </metal:block>
-
-        <metal:block define-macro="filemanager-scripts">
-            <script type="text/javascript" tal:attributes="src string:${portal_url}/++plone++static/filemanager-compiled.min.js"></script>
-        </metal:block>
+    <metal:block define-macro="dependency-css">
+      <link rel="stylesheet"
+            type="text/css"
+            tal:attributes="
+              href string:${portal_url}/++plone++static/filemanager-compiled.css;
+            "
+      />
     </metal:block>
 
-    <metal:block define-macro="filemanager"
-        tal:define="authenticator context/@@authenticator/authenticator | nothing">
-
-        <input tal:replace="structure authenticator" />
-        <div class="pat-filemanager"
-            tal:attributes="data-pat-filemanager view/pattern_options">
-        </div>
-
+    <metal:block define-macro="filemanager-scripts">
+      <script type="text/javascript"
+              tal:attributes="
+                src string:${portal_url}/++plone++static/filemanager-compiled.min.js;
+              "
+      ></script>
     </metal:block>
+  </metal:block>
+
+  <metal:block define-macro="filemanager"
+               tal:define="
+                 authenticator context/@@authenticator/authenticator | nothing;
+               "
+  >
+
+    <input tal:replace="structure authenticator" />
+    <div class="pat-filemanager"
+         tal:attributes="
+           data-pat-filemanager view/pattern_options;
+         "
+    >
+    </div>
+
+  </metal:block>
 </div>

@@ -2,52 +2,53 @@
     xmlns="http://namespaces.zope.org/zope"
     xmlns:browser="http://namespaces.zope.org/browser"
     xmlns:zcml="http://namespaces.zope.org/zcml"
-    i18n_domain="plone">
+    i18n_domain="plone"
+    >
 
-    <include package="plone.staticresources" />
+  <include package="plone.staticresources" />
 
-    <permission
-        id="plone.resourceeditor.ManageSources"
-        title="plone.resourceeditor: Manage Sources"
-        />
+  <permission
+      id="plone.resourceeditor.ManageSources"
+      title="plone.resourceeditor: Manage Sources"
+      />
 
-    <browser:page
-        name="plone.resourceeditor.filemanager-actions"
-        for="plone.resource.interfaces.IResourceDirectory"
-        class=".browser.FileManagerActions"
-        permission="plone.resourceeditor.ManageSources"
-        />
+  <browser:page
+      name="plone.resourceeditor.filemanager-actions"
+      for="plone.resource.interfaces.IResourceDirectory"
+      class=".browser.FileManagerActions"
+      permission="plone.resourceeditor.ManageSources"
+      />
 
-    <browser:page
-        name="plone.resourceeditor.filemanager"
-        for="plone.resource.interfaces.IResourceDirectory"
-        class=".browser.FileManager"
-        template="editor.pt"
-        permission="plone.resourceeditor.ManageSources"
-        />
+  <browser:page
+      name="plone.resourceeditor.filemanager"
+      for="plone.resource.interfaces.IResourceDirectory"
+      class=".browser.FileManager"
+      template="editor.pt"
+      permission="plone.resourceeditor.ManageSources"
+      />
 
-    <browser:page
-        name="plone.resourceeditor.getfile"
-        for="plone.resource.interfaces.IResourceDirectory"
-        class=".browser.FileManager"
-        attribute="getFile"
-        permission="plone.resourceeditor.ManageSources"
-        />
+  <browser:page
+      name="plone.resourceeditor.getfile"
+      for="plone.resource.interfaces.IResourceDirectory"
+      class=".browser.FileManager"
+      attribute="getFile"
+      permission="plone.resourceeditor.ManageSources"
+      />
 
-    <browser:page
-        name="plone.resourceeditor.savefile"
-        for="plone.resource.interfaces.IResourceDirectory"
-        class=".browser.FileManager"
-        attribute="saveFile"
-        permission="plone.resourceeditor.ManageSources"
-        />
+  <browser:page
+      name="plone.resourceeditor.savefile"
+      for="plone.resource.interfaces.IResourceDirectory"
+      class=".browser.FileManager"
+      attribute="saveFile"
+      permission="plone.resourceeditor.ManageSources"
+      />
 
-    <browser:page
-        name="plone.resourceeditor.filetree"
-        for="plone.resource.interfaces.IResourceDirectory"
-        class=".browser.FileManager"
-        attribute="filetree"
-        permission="plone.resourceeditor.ManageSources"
-        />
+  <browser:page
+      name="plone.resourceeditor.filetree"
+      for="plone.resource.interfaces.IResourceDirectory"
+      class=".browser.FileManager"
+      attribute="filetree"
+      permission="plone.resourceeditor.ManageSources"
+      />
 
 </configure>
