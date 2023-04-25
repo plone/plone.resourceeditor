@@ -1300,7 +1300,7 @@ var BASE_URL = '{}';
         path = path.lstrip("/")
         value = value.replace("\r\n", "\n")
         self.context.writeFile(path, value)
-        return " "  # Zope no likey empty responses
+        return " "  # Zope does not like empty responses
 
     def filetree(self):
         foldersOnly = bool(self.request.get("foldersOnly", False))

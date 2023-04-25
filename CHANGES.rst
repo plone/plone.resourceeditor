@@ -111,7 +111,7 @@ Fixes:
 - Remove  unittest2 dependency
   [kakshay21]
 - Split the error message for the move API endpoint into two. One
-  is for the parent folder and the other is for the distination folder
+  is for the parent folder and the other is for the destination folder
   [b4oshany]
 - Fix Jenkins flake8 errors
 
@@ -160,7 +160,7 @@ Fixes:
 2.0.2 (2015-09-08)
 ------------------
 
-- Added check to prevent overwritting folders when saving
+- Added check to prevent overwriting folders when saving
   [obct537]
 
 2.0.1 (2015-08-22)
