@@ -1,4 +1,4 @@
-from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING  # noqa
+from plone.resourceeditor.testing import PLONE_RESOURCE_EDITOR_INTEGRATION_TESTING
 
 import six
 import unittest
@@ -122,8 +122,8 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['name'], 'beta')
 
     def test_add(self):
-        from plone.resourceeditor.browser import FileManager
         from io import BytesIO
+        from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
 
         view = FileManager(r, self.layer['request'])
@@ -139,8 +139,8 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['parent'], '/')
 
     def test_add_subfolder(self):
-        from plone.resourceeditor.browser import FileManager
         from io import BytesIO
+        from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
         r.makeDirectory('alpha')
 
@@ -158,8 +158,8 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(info['parent'], '/alpha')
 
     def test_add_exists(self):
-        from plone.resourceeditor.browser import FileManager
         from io import BytesIO
+        from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
         r.writeFile('test.txt', b'boo')
 
@@ -176,8 +176,8 @@ class TestResourceEditorOperations(unittest.TestCase):
         self.assertEqual(r.readFile('test.txt'), b'boo')
 
     def test_add_replace(self):
-        from plone.resourceeditor.browser import FileManager
         from io import BytesIO
+        from plone.resourceeditor.browser import FileManager
         r = self._make_directory()
         r.writeFile('test.txt', b'boo')
 

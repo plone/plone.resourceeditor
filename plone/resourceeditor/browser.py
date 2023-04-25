@@ -6,13 +6,13 @@ from plone.resource.directory import FilesystemResourceDirectory
 from plone.resource.file import FilesystemFile
 from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.utils import safe_unicode
 from Products.CMFPlone.utils import safe_encode
+from Products.CMFPlone.utils import safe_unicode
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from six.moves import urllib
-from urllib.parse import urlparse
 from time import localtime
 from time import strftime
+from urllib.parse import urlparse
 from zExceptions import NotFound
 from zope.cachedescriptors import property as zproperty
 from zope.component import queryMultiAdapter
