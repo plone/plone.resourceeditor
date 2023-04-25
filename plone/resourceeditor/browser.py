@@ -2,11 +2,11 @@ from AccessControl import Unauthorized
 from DateTime import DateTime
 from OFS.Image import File
 from OFS.Image import Image
+from plone.base.utils import safe_text
 from plone.resource.directory import FilesystemResourceDirectory
 from plone.resource.file import FilesystemFile
 from plone.resource.interfaces import IResourceDirectory
 from Products.CMFCore.utils import getToolByName
-from Products.CMFPlone.utils import safe_unicode
 from Products.Five.browser.pagetemplatefile import ViewPageTemplateFile
 from time import localtime
 from time import strftime
@@ -110,7 +110,7 @@ class FileManagerActions(BrowserView):
             try:
                 data = self.context.readFile(path)
 
-                result["contents"] = safe_unicode(data)
+                result["contents"] = safe_text(data)
                 try:
                     return json.dumps(result)
                 except UnicodeDecodeError:
