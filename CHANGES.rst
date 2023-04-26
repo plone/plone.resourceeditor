@@ -8,6 +8,23 @@ Changelog
 
 .. towncrier release notes start
 
+4.0.0 (2023-04-27)
+------------------
+
+Breaking changes:
+
+
+- Drop python 2.7 compatibility.
+  [gforcada] (#1)
+
+
+Internal:
+
+
+- Update configuration files.
+  [plone devs] (2a4ba395)
+
+
 3.0.4 (2022-08-30)
 ------------------
 
