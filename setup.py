@@ -38,7 +38,6 @@ setup(
         "plone.base",
         "plone.resource",
         "plone.staticresources",
-        "setuptools",
         "Products.CMFCore",
         "Zope",
     ],
