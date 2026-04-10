@@ -1,7 +1,6 @@
 import mimetypes
 import os.path
 
-
 # Borrowed from zope.contenttype.
 # This allows us to register mimetypes that
 # aren't included in python by default

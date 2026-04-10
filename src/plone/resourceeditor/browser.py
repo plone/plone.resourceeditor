@@ -25,7 +25,6 @@ import posixpath
 import re
 import urllib
 
-
 _ = MessageFactory("plone")
 
 
